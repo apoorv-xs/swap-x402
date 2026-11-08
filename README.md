@@ -2,7 +2,7 @@
 > **Target Bounty:** Swap.io x402 Video Challenge ($500 USDC on Superteam Earn)  
 > **Author & Architect:** Apoorv A S (`@apoorv_xs` / `apoorv-xs`) — Creative Technologist & 3D WebUI Architect  
 > **Deliverable Asset:** `swap_io_x402_kinetic_vault_60fps.webm` (1080p @ 60 FPS, 5.47 MB with synchronized procedural Web Audio)  
-> **Interactive Live Preview:** `http://localhost:8080/index.html` (Full-bleed WebGL 3D Studio)
+> **Interactive Live Preview:** `https://apoorv-xs.github.io/swap-x402/` (Full-bleed WebGL 3D Studio)
 
 ---
 
@@ -84,7 +84,7 @@ To eliminate all prototype aesthetics and achieve an Apple / Stripe Press grade 
 | Artifact | Path / URL | Status |
 |---|---|---|
 | **60 FPS Master Video** | `B:\bounties\swap_x402\swap_io_x402_kinetic_vault_60fps.webm` | **Verified (5.47 MB, 1080p @ 60 FPS)** |
-| **Interactive Studio WebUI** | `B:\bounties\swap_x402\index.html` (`http://localhost:8080/index.html`) | **Live & Operational** |
+| **Interactive Studio WebUI** | `B:\bounties\swap_x402\index.html` (`https://apoorv-xs.github.io/swap-x402/`) | **Live & Operational** |
 | **Phase 1 Master Render** | `final_phase1_apple.png` | **Verified Apple-Tier** |
 | **Phase 2 Master Render** | `final_phase2_apple.png` | **Clean, Zero Artifacts** |
 | **Phase 3 Hero Showcase** | `final_phase3_apple.png` | **Forged Solana Chrono-Bullion** |
