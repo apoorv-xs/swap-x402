@@ -1,0 +1,2371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Swap.io x402 // Kinetic Token Vault & Multi-Hop Manifold</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #030407;
+      --line: rgba(255, 255, 255, 0.08);
+      --line-active: rgba(0, 255, 163, 0.25);
+      --text: #f1f5f9;
+      --muted: #64748b;
+      --dim: #334155;
+      --green: #00ffa3;
+      --cyan: #38bdf8;
+      --yellow: #facc15;
+      --red: #f87171;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Space Grotesk', -apple-system, sans-serif;
+    }
+
+    body, html {
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    #webgl-canvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+      cursor: grab;
+      touch-action: none;
+    }
+
+    .ambient-film-grain {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      pointer-events: none;
+      z-index: 999;
+      opacity: 0.038;
+      mix-blend-mode: overlay;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    }
+
+    /* === CINEMATIC FLOATING FROSTED GLASS HUD OVERLAY === */
+    .avionics-cockpit {
+      position: absolute;
+      inset: 0;
+      z-index: 10;
+      pointer-events: none;
+      display: grid;
+      grid-template-columns: 290px 1fr 280px;
+      grid-template-rows: 48px 1fr 52px;
+      padding: 12px 18px;
+      gap: 14px;
+    }
+
+    /* 1. Top Integrated Header Bar */
+    .top-ribbon {
+      grid-column: 1 / -1;
+      grid-row: 1;
+      height: 48px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(6, 10, 18, 0.65);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      pointer-events: auto;
+    }
+
+    .brand-block {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .brand-tag {
+      color: var(--green);
+      background: rgba(0, 255, 163, 0.1);
+      border: 1px solid rgba(0, 255, 163, 0.25);
+      padding: 2px 7px;
+      border-radius: 4px;
+      font-size: 10px;
+    }
+
+    .step-pipeline {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.8px;
+    }
+
+    .step-item {
+      cursor: pointer;
+      transition: all 0.2s ease;
+      padding: 4px 8px;
+      border-radius: 6px;
+    }
+    .step-item:hover {
+      background: rgba(255, 255, 255, 0.06);
+    }
+    .step-item.active {
+      background: rgba(0, 255, 163, 0.08);
+    }
+
+    /* Central Director's Subtitle Anchor Pill */
+    .narrative-pill {
+      position: absolute;
+      bottom: 84px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      background: rgba(8, 12, 20, 0.88);
+      border: 1px solid rgba(0, 255, 163, 0.28);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      padding: 9px 20px;
+      border-radius: 9999px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.6px;
+      color: #e2e8f0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 4px 28px rgba(0, 0, 0, 0.7);
+      pointer-events: none;
+      transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      white-space: nowrap;
+    }
+
+    .narrative-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #f87171;
+      box-shadow: 0 0 8px #f87171;
+      transition: all 0.3s ease;
+    }
+
+    /* Adaptive Laptop Ergonomics (1280px - 1440px) */
+    @media (max-width: 1440px) {
+      .avionics-cockpit {
+        grid-template-columns: 300px 1fr 280px;
+      }
+      .left-strip, .right-strip {
+        padding: 16px 18px;
+      }
+      .narrative-pill {
+        font-size: 10px;
+        padding: 7px 16px;
+        bottom: 78px;
+      }
+    }
+
+
+
+    .step-item.active {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .step-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--dim);
+      transition: all 0.3s;
+    }
+
+    .step-item.active .step-dot {
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+    }
+
+    .status-capsule {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 12px;
+      border-radius: 4px;
+      background: rgba(248, 113, 113, 0.12);
+      border: 1px solid rgba(248, 113, 113, 0.3);
+      color: var(--red);
+      transition: all 0.3s ease;
+    }
+
+    /* 2. Left Edge Telemetry Strip */
+    .left-strip {
+      grid-column: 1;
+      grid-row: 2;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(6, 10, 18, 0.60);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      pointer-events: auto;
+      overflow: hidden;
+      max-height: calc(100vh - 138px);
+    }
+
+    .section-title {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      letter-spacing: 1.2px;
+      color: var(--muted);
+      text-transform: uppercase;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 14px;
+    }
+
+    .term-stream {
+      flex: 1;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      line-height: 1.55;
+      color: #cbd5e1;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+      mask-image: linear-gradient(to bottom, transparent 0%, black 14px, black calc(100% - 10px), black 100%);
+      -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 14px, black calc(100% - 10px), black 100%);
+    }
+
+    .term-stream::-webkit-scrollbar {
+      display: none;
+    }
+
+    .log-row {
+      margin-bottom: 6px;
+      opacity: 0;
+      transform: translateY(4px);
+      animation: rowIn 0.25s forwards cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes rowIn {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 3. Right Edge Telemetry Strip */
+    .right-strip {
+      grid-column: 3;
+      grid-row: 2;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(6, 10, 18, 0.60);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      padding: 16px 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      pointer-events: auto;
+      overflow-y: auto;
+      max-height: calc(100vh - 138px);
+    }
+
+    .tele-card {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .tele-tag {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9.5px;
+      color: var(--muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .tele-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13.5px;
+      font-weight: 700;
+      color: var(--text);
+      font-feature-settings: "tnum" 1, "zero" 1;
+    }
+
+    .route-bar {
+      margin-top: 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .route-line {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      padding: 6px 10px;
+      border: 1px solid var(--line);
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.02);
+      transition: all 0.3s;
+    }
+
+    .route-line.unlocked {
+      border-color: rgba(0, 255, 163, 0.3);
+      background: rgba(0, 255, 163, 0.05);
+      color: var(--green);
+    }
+
+    /* 4. Bottom Command Bar */
+    .bottom-ribbon {
+      grid-column: 1 / -1;
+      grid-row: 3;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(6, 10, 18, 0.65);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      pointer-events: auto;
+    }
+
+    .bottom-meta {
+      display: flex;
+      gap: 28px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .bottom-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-hairline {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 7px 16px;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .btn-hairline:hover {
+      border-color: rgba(255, 255, 255, 0.25);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .btn-record {
+      background: var(--red);
+      border: none;
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      padding: 7px 18px;
+      border-radius: 4px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 0 16px rgba(248, 113, 113, 0.35);
+      transition: all 0.2s;
+    }
+
+    .btn-record:hover {
+      transform: scale(1.03);
+      box-shadow: 0 0 24px rgba(248, 113, 113, 0.55);
+    }
+
+    /* Reticle crosshair markers for avionics framing */
+    .reticle-cross {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      pointer-events: none;
+    }
+    .reticle-tl { top: 60px; left: 372px; border-top: 1px solid var(--line); border-left: 1px solid var(--line); }
+    .reticle-tr { top: 60px; right: 332px; border-top: 1px solid var(--line); border-right: 1px solid var(--line); }
+    .reticle-bl { bottom: 68px; left: 372px; border-bottom: 1px solid var(--line); border-left: 1px solid var(--line); }
+    .reticle-br { bottom: 68px; right: 332px; border-bottom: 1px solid var(--line); border-right: 1px solid var(--line); }
+  
+    /* Anamorphic Hollywood Sci-Fi Lens Flare Streak */
+    #anamorphic-flare {
+      position: fixed;
+      top: 50%;
+      left: 0;
+      width: 100vw;
+      height: 2px;
+      pointer-events: none;
+      z-index: 998;
+      background: linear-gradient(90deg, transparent 0%, rgba(56, 189, 248, 0.5) 15%, rgba(0, 255, 163, 0.98) 50%, rgba(192, 132, 252, 0.5) 85%, transparent 100%);
+      box-shadow: 0 0 45px #00ffa3, 0 0 90px #38bdf8, 0 0 120px rgba(192, 132, 252, 0.6);
+      opacity: 0;
+      transform: translateY(-50%) scaleX(0.01);
+      transition: transform 0.40s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.40s ease-out;
+    }
+    #anamorphic-flare.active {
+      opacity: 1;
+      transform: translateY(-50%) scaleX(1.4);
+    }
+  </style>
+  <script src="three.min.js"></script>
+  <script>if (typeof THREE === 'undefined') { document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\\/script>'); }</script>
+  <!-- Three.js Postprocessing & UnrealBloom -->
+    <!-- Three.js Postprocessing & UnrealBloom (Local Offline - Correct Dependency Order) -->
+    <script src="EffectComposer.js"></script>
+    <script src="RenderPass.js"></script>
+    <script src="CopyShader.js"></script>
+    <script src="ShaderPass.js"></script>
+    <script src="LuminosityHighPassShader.js"></script>
+    <script src="UnrealBloomPass.js"></script>
+  <!-- Three.js GLTF Loader & Offline Model Data -->
+  <script src="GLTFLoader.js"></script>
+  <script src="swap_vault_data.js"></script>
+</head>
+<body>
+  <div id="anamorphic-flare"></div>
+  <div class="ambient-film-grain" aria-hidden="true"></div>
+  <canvas id="webgl-canvas"></canvas>
+
+
+
+  <!-- Full-Bleed Edge Avionics HUD -->
+  <div class="avionics-cockpit">
+    <!-- Top Full-Bleed Ribbon -->
+    <header class="top-ribbon">
+      <div class="brand-block">
+        <span class="brand-tag">SWAP.IO</span>
+        <span>HERMES_X402_ROUTER // KINETIC VAULT</span>
+      </div>
+
+      <nav class="step-pipeline">
+        <div class="step-item active" id="step-1">
+          <div class="step-dot"></div>
+          <span>01_CHALLENGE</span>
+        </div>
+        <span>→</span>
+        <div class="step-item" id="step-2">
+          <div class="step-dot"></div>
+          <span>02_SPL_SETTLEMENT</span>
+        </div>
+        <span>→</span>
+        <div class="step-item" id="step-3">
+          <div class="step-dot"></div>
+          <span>03_MULTI_HOP_ROUTED</span>
+        </div>
+      </nav>
+
+      <div class="status-capsule" id="status-capsule">
+        <div class="step-dot" id="status-dot" style="background:#f87171; box-shadow:0 0 8px #f87171;"></div>
+        <span id="status-label">HTTP 402 · PAYMENT REQUIRED</span>
+      </div>
+    </header>
+
+    <!-- Left Edge Telemetry Strip -->
+    <aside class="left-strip">
+      <div class="section-title">
+        <span>AGENT WIRE STREAM</span>
+        <span>RFC 8259</span>
+      </div>
+      <div class="term-stream" id="term-stream"></div>
+    </aside>
+
+    <!-- Center Space Left Completely Clear for the 3D Kinetic Sculpture -->
+    <main>
+      <!-- Director's Plain-English Narrative Anchor -->
+      <div id="narrative-pill" class="narrative-pill">
+        <div class="narrative-dot" id="narrative-dot"></div>
+        <span id="narrative-text">PHASE 01 // Swap.io API returned HTTP 402 — Vault locked until micro-payment</span>
+      </div>
+    </main>
+
+    <!-- Right Edge Telemetry & Route Manifold Strip -->
+    <aside class="right-strip">
+      <div class="section-title">
+        <span>SETTLEMENT TELEMETRY</span>
+        <span>SOLANA</span>
+      </div>
+
+      <div class="tele-card">
+        <span class="tele-tag">Settlement Asset</span>
+        <span class="tele-val" style="color:var(--cyan);">USDC (SPL Token)</span>
+      </div>
+
+      <div class="tele-card">
+        <span class="tele-tag">Atomic Quote Price</span>
+        <span class="tele-val" style="color:var(--yellow);">$0.004405 USDC</span>
+      </div>
+
+      <div class="tele-card">
+        <span class="tele-tag">Network Gas Fee</span>
+        <span class="tele-val" style="color:var(--green);">0 SOL · FeePayer Sponsored</span>
+      </div>
+
+      <div class="tele-card">
+        <span class="tele-tag">Authentication Scheme</span>
+        <span class="tele-val">0 Static Keys (Exact x402)</span>
+      </div>
+
+      <div class="section-title" style="margin-top:10px;">
+        <span>LIQUIDITY ROUTE MANIFOLD</span>
+        <span id="route-state-tag">LOCKED</span>
+      </div>
+
+      <div class="route-bar">
+        <div class="route-line" id="route-jupiter">
+          <span>01 JUPITER ROUTE</span>
+          <span class="route-pct">99.4%</span>
+        </div>
+        <div class="route-line" id="route-dflow">
+          <span>02 DFLOW MEMPOOL</span>
+          <span class="route-pct">0.4%</span>
+        </div>
+        <div class="route-line" id="route-okx">
+          <span>03 OKX DEX BRIDGE</span>
+          <span class="route-pct">0.2%</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Bottom Full-Bleed Control Ribbon -->
+    <footer class="bottom-ribbon">
+      <div class="bottom-meta">
+        <span>FOCAL: 28MM TELEPHOTO</span>
+        <span>CORE: 8-BLADE MECHANICAL APERTURE</span>
+        <span>LATENCY: 1.84 MS</span>
+        <span>RATE: 60.0 FPS</span>
+      </div>
+
+      <div class="bottom-actions">
+        <button class="btn-hairline" id="btn-replay">Replay Handshake</button>
+        <button class="btn-record" id="btn-record">● Record 60 FPS Reel</button>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // === 1. KINETIC APERTURE VAULT & MULTI-HOP SATELLITE RIG (THREE.JS) ===
+    const canvas = document.getElementById("webgl-canvas");
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+      alpha: true,
+      powerPreference: "high-performance"
+    });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.25;
+
+    const scene = new THREE.Scene();
+    window.__SCENE = scene;
+    scene.fog = new THREE.FogExp2(0x020408, 0.045);
+
+    // Cinematic 32° Perspective Camera (Framed with breathing room, vault left-of-center)
+    const camera = new THREE.PerspectiveCamera(32, window.innerWidth / window.innerHeight, 0.1, 100);
+    camera.position.set(-0.25, 0.45, 4.8);
+    camera.lookAt(-0.10, -0.25, 0);
+
+    // Atmospheric Cleanroom Horizon Fog
+    scene.fog = new THREE.FogExp2(0x03060c, 0.035);
+
+    // =========================================================================
+    // INFINITE DARK OBSIDIAN CLEANROOM FLOOR WITH FRESNEL REFLECTIONS
+    // =========================================================================
+    const floorGeom = new THREE.PlaneGeometry(60, 60, 1, 1);
+    const floorMat = new THREE.MeshStandardMaterial({
+      color: 0x03060c,
+      metalness: 0.90,
+      roughness: 0.22,
+      envMap: scene.environment,
+      envMapIntensity: 0.85
+    });
+    const floorMesh = new THREE.Mesh(floorGeom, floorMat);
+    floorMesh.rotation.x = -Math.PI / 2;
+    floorMesh.position.y = -1.45;
+    scene.add(floorMesh);
+
+    // Contact Ambient Occlusion Shadow Disc Directly Beneath Vault Rig
+    const contactShadowGeom = new THREE.PlaneGeometry(5.0, 5.0);
+    const contactShadowMat = new THREE.ShaderMaterial({
+      vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+      fragmentShader: `
+        varying vec2 vUv;
+        void main() {
+          float d = length(vUv - 0.5) * 2.0;
+          float innerAO = exp(-d * d * 8.0) * 0.92;
+          float outerGlow = exp(-d * d * 1.8) * 0.40;
+          float totalAlpha = clamp(innerAO + outerGlow, 0.0, 1.0);
+          gl_FragColor = vec4(0.01, 0.02, 0.03, totalAlpha);
+        }
+      `,
+      transparent: true,
+      depthWrite: false
+    });
+    const contactShadow = new THREE.Mesh(contactShadowGeom, contactShadowMat);
+    contactShadow.rotation.x = -Math.PI / 2;
+    contactShadow.position.y = -1.448;
+    scene.add(contactShadow);
+
+    // Procedural Studio Lighting Environment (PMREM)
+    const pmremGenerator = new THREE.PMREMGenerator(renderer);
+    pmremGenerator.compileEquirectangularShader();
+
+    const envCanvas = document.createElement("canvas");
+    envCanvas.width = 512; envCanvas.height = 256;
+    const eCtx = envCanvas.getContext("2d");
+    const grad = eCtx.createLinearGradient(0, 0, 0, 256);
+    grad.addColorStop(0, "#0e1726"); grad.addColorStop(0.5, "#020408"); grad.addColorStop(1, "#000000");
+    eCtx.fillStyle = grad; eCtx.fillRect(0, 0, 512, 256);
+      // Studio Softbox ceiling light bank (Clean neutral white)
+    eCtx.fillStyle = "rgba(255, 255, 255, 0.75)";
+    eCtx.fillRect(130, 8, 252, 38);
+    // Subtle neutral slate fill cards (Zero green/cyan/pink glare!)
+    eCtx.fillStyle = "rgba(100, 116, 139, 0.15)";
+    eCtx.fillRect(30, 70, 90, 120);
+    eCtx.fillRect(390, 70, 90, 120);
+    const envTexture = new THREE.CanvasTexture(envCanvas);
+    envTexture.mapping = THREE.EquirectangularReflectionMapping;
+    scene.environment = pmremGenerator.fromEquirectangular(envTexture).texture;
+
+    // Contact Floor Shadow Disc
+    const shadowGeom = new THREE.PlaneGeometry(6, 6);
+    const shadowMat = new THREE.ShaderMaterial({
+      vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+      fragmentShader: `varying vec2 vUv; void main() { float d = length(vUv - 0.5); float a = exp(-d * d * 18.0) * 0.78; gl_FragColor = vec4(0.0, 0.0, 0.0, a); }`,
+      transparent: true, depthWrite: false
+    });
+    const shadowPlane = new THREE.Mesh(shadowGeom, shadowMat);
+    shadowPlane.rotation.x = -Math.PI / 2;
+    shadowPlane.position.y = -1.45;
+    scene.add(shadowPlane);
+
+    // Studio Softbox Downward Flood Bank (Casts soft specular highlights on chassis chamfers)
+    const softboxLight = new THREE.SpotLight(0xffffff, 2.2, 16, Math.PI / 3, 0.6, 1.2);
+    softboxLight.position.set(2, 6, 4);
+    scene.add(softboxLight);
+
+    // Key Light
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.4);
+    keyLight.position.set(-3, 6, 5);
+    scene.add(keyLight);
+
+    // Subtle Rim Lights focused on coin / gimbal silhouettes
+    // Rim Light (Positioned below/behind so it rims the floating rings without touching the table top)
+    const rimLight = new THREE.DirectionalLight(0x38bdf8, 0.45);
+    rimLight.position.set(3, -0.8, -3);
+    scene.add(rimLight);
+
+    const solanaPurpleRim = new THREE.DirectionalLight(0x9945ff, 1.3);
+    solanaPurpleRim.position.set(-4, -1, -2);
+    scene.add(solanaPurpleRim);
+
+    const fillLight = new THREE.DirectionalLight(0x0a1128, 0.6);
+    fillLight.position.set(0, -3, 2);
+    scene.add(fillLight);
+
+    // Interior Well Glow (Upward theatrical illumination from inside the recessed escrow trench)
+    const wellLight = new THREE.PointLight(0xf87171, 1.0, 3.5, 2.0);
+    wellLight.position.set(0, -0.40, 0);
+    scene.add(wellLight);
+
+    // Unreal Bloom Post-Processing with Safe Fallback
+    let composer = null;
+    try {
+      if (typeof THREE.EffectComposer !== "undefined" && typeof THREE.UnrealBloomPass !== "undefined") {
+        composer = new THREE.EffectComposer(renderer);
+        composer.addPass(new THREE.RenderPass(scene, camera));
+        const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.75, 0.35, 0.82);
+        composer.addPass(bloomPass);
+      }
+    } catch (e) {
+      console.warn("Composer init fallback:", e);
+      composer = null;
+    }
+
+    // ==========================================
+        // ==========================================
+    // PROCEDURAL HIGH-RESOLUTION USDC MINT TEXTURE
+    // ==========================================
+    const usdcCanvas = document.createElement("canvas");
+    usdcCanvas.width = 1024; usdcCanvas.height = 1024;
+    const uCtx = usdcCanvas.getContext("2d");
+
+    // Deep sapphire brushed radial gradient
+    const uGrad = uCtx.createRadialGradient(512, 512, 50, 512, 512, 512);
+    uGrad.addColorStop(0, "#08284d");
+    uGrad.addColorStop(0.65, "#04152b");
+    uGrad.addColorStop(1, "#020914");
+    uCtx.fillStyle = uGrad;
+    uCtx.fillRect(0, 0, 1024, 1024);
+
+    // Lathe concentric micro-grooves
+    uCtx.lineWidth = 1.2;
+    for (let r = 80; r < 500; r += 10) {
+      uCtx.strokeStyle = (r % 30 === 0) ? "rgba(56, 189, 248, 0.45)" : "rgba(14, 40, 75, 0.6)";
+      uCtx.beginPath(); uCtx.arc(512, 512, r, 0, Math.PI * 2); uCtx.stroke();
+    }
+
+    // Outer Precision Calibration Indices (72 ticks)
+    for (let i = 0; i < 72; i++) {
+      const a = (i / 72) * Math.PI * 2;
+      const len = (i % 6 === 0) ? 26 : 12;
+      uCtx.strokeStyle = (i % 6 === 0) ? "#38bdf8" : "#1e3a5f";
+      uCtx.lineWidth = (i % 6 === 0) ? 2.5 : 1.2;
+      uCtx.beginPath();
+      uCtx.moveTo(512 + Math.cos(a) * 465, 512 + Math.sin(a) * 465);
+      uCtx.lineTo(512 + Math.cos(a) * (465 - len), 512 + Math.sin(a) * (465 - len));
+      uCtx.stroke();
+    }
+
+    // Iconic USDC Double-Crescent Contour Ring
+    uCtx.strokeStyle = "#38bdf8";
+    uCtx.lineWidth = 18;
+    uCtx.beginPath();
+    uCtx.arc(512, 512, 290, 0, Math.PI * 2);
+    uCtx.stroke();
+
+    uCtx.strokeStyle = "#00ffa3";
+    uCtx.lineWidth = 6;
+    uCtx.beginPath();
+    uCtx.arc(512, 512, 310, 0, Math.PI * 2);
+    uCtx.stroke();
+
+    // Central High-Relief Currency Emblem ($)
+    uCtx.fillStyle = "#ffffff";
+    uCtx.font = "900 240px 'Space Grotesk', sans-serif";
+    uCtx.textAlign = "center";
+    uCtx.textBaseline = "middle";
+    uCtx.shadowColor = "#38bdf8";
+    uCtx.shadowBlur = 35;
+    uCtx.fillText("$", 512, 520);
+    uCtx.shadowBlur = 0;
+
+    // Laser-Etched Typography on Sapphire
+    uCtx.fillStyle = "#94a3b8";
+    uCtx.font = "bold 18px 'JetBrains Mono', monospace";
+    uCtx.fillText("USD COIN // SPL TOKEN MINT EPjFWdd5Aufq...", 512, 140);
+    uCtx.fillText("AUTONOMOUS AGENT SETTLEMENT // HERMES X402", 512, 890);
+
+    const usdcTexture = new THREE.CanvasTexture(usdcCanvas);
+    // ==========================================
+    // PROCEDURAL HIGH-RESOLUTION SOLANA MINT TEXTURE
+    // ==========================================
+    const solanaProofCanvas = document.createElement("canvas");
+    solanaProofCanvas.width = 1024; solanaProofCanvas.height = 1024;
+    const solCtx = solanaProofCanvas.getContext("2d");
+
+    // Deep cosmic obsidian-violet radial gradient
+    const sGrad = solCtx.createRadialGradient(512, 512, 40, 512, 512, 512);
+    sGrad.addColorStop(0, "#220938");
+    sGrad.addColorStop(0.55, "#0d0317");
+    sGrad.addColorStop(1, "#020005");
+    solCtx.fillStyle = sGrad;
+    solCtx.fillRect(0, 0, 1024, 1024);
+
+    // Lathe concentric precision rings
+    solCtx.lineWidth = 1.2;
+    for (let r = 80; r < 500; r += 12) {
+      solCtx.strokeStyle = (r % 36 === 0) ? "rgba(20, 241, 149, 0.40)" : "rgba(153, 69, 255, 0.25)";
+      solCtx.beginPath(); solCtx.arc(512, 512, r, 0, Math.PI * 2); solCtx.stroke();
+    }
+
+    // Outer 72 calibration tick indices
+    for (let i = 0; i < 72; i++) {
+      const a = (i / 72) * Math.PI * 2;
+      const len = (i % 6 === 0) ? 26 : 12;
+      solCtx.strokeStyle = (i % 6 === 0) ? "#14f195" : "#5b21b6";
+      solCtx.lineWidth = (i % 6 === 0) ? 2.5 : 1.2;
+      solCtx.beginPath();
+      solCtx.moveTo(512 + Math.cos(a) * 465, 512 + Math.sin(a) * 465);
+      solCtx.lineTo(512 + Math.cos(a) * (465 - len), 512 + Math.sin(a) * (465 - len));
+      solCtx.stroke();
+    }
+
+    // Outer Ring Track
+    solCtx.strokeStyle = "#9945ff";
+    solCtx.lineWidth = 14;
+    solCtx.beginPath();
+    solCtx.arc(512, 512, 305, 0, Math.PI * 2);
+    solCtx.stroke();
+
+    solCtx.strokeStyle = "#14f195";
+    solCtx.lineWidth = 5;
+    solCtx.beginPath();
+    solCtx.arc(512, 512, 325, 0, Math.PI * 2);
+    solCtx.stroke();
+
+    // FUNCTION TO DRAW SOLANA EMBLEM (3 Iconic Gradient Parallelograms)
+    function drawSolanaBar(yCenter, flip) {
+      solCtx.save();
+      const bGrad = solCtx.createLinearGradient(310, yCenter, 714, yCenter);
+      if (!flip) {
+        bGrad.addColorStop(0, "#9945ff");
+        bGrad.addColorStop(1, "#14f195");
+      } else {
+        bGrad.addColorStop(0, "#14f195");
+        bGrad.addColorStop(1, "#9945ff");
+      }
+      solCtx.fillStyle = bGrad;
+      solCtx.shadowColor = "#14f195";
+      solCtx.shadowBlur = 24;
+
+      const skew = flip ? -55 : 55;
+      solCtx.beginPath();
+      solCtx.moveTo(330 + skew, yCenter - 34);
+      solCtx.lineTo(690 + skew, yCenter - 34);
+      solCtx.lineTo(690 - skew, yCenter + 34);
+      solCtx.lineTo(330 - skew, yCenter + 34);
+      solCtx.closePath();
+      solCtx.fill();
+      solCtx.restore();
+    }
+
+    drawSolanaBar(420, false);
+    drawSolanaBar(512, true);
+    drawSolanaBar(604, false);
+
+    // Laser-Etched Solana Typography
+    solCtx.fillStyle = "#a78bfa";
+    solCtx.font = "bold 19px 'JetBrains Mono', monospace";
+    solCtx.textAlign = "center";
+    solCtx.fillText("SOLANA SETTLEMENT // SPL NATIVE ASSET", 512, 140);
+    solCtx.fillStyle = "#14f195";
+    solCtx.fillText("ATOMIC LIQUIDITY UNLOCKED // 200 OK", 512, 890);
+
+    const solanaProofTexture = new THREE.CanvasTexture(solanaProofCanvas);
+
+    // ==========================================
+    // HERO 3D SCULPTED GLB: KINETIC AIRLOCK VAULT
+    // ==========================================
+    let vaultModel = null;
+    let glbBullion = null;
+    let glbSolana = null;
+    let glbGimbalOuter = null;
+    let glbGimbalMid = null;
+    let glbCaliperIris = null;
+    let glbSatellites = [];
+
+    const vaultRig = new THREE.Group();
+    scene.add(vaultRig);
+
+    function base64ToArrayBuffer(base64) {
+      const binary_string = window.atob(base64);
+      const len = binary_string.length;
+      const bytes = new Uint8Array(len);
+      for (let i = 0; i < len; i++) {
+        bytes[i] = binary_string.charCodeAt(i);
+      }
+      return bytes.buffer;
+    }
+
+    const gltfLoader = new THREE.GLTFLoader();
+
+    function onModelLoaded(gltf) {
+      vaultModel = gltf.scene;
+      vaultModel.scale.set(0.42, 0.42, 0.42);
+      vaultRig.add(vaultModel);
+
+      // Disable legacy procedural primitives
+      usdcGroup.visible = false;
+      gateGroup.visible = false;
+      solanaGroup.visible = false;
+      prismMesh.visible = false;
+
+      // Extract named nodes and elevate materials to luxury cinema standard
+      let glbChassis = null;
+      vaultModel.traverse((child) => {
+        if (child.name === 'Chassis_Base_Root') glbChassis = child;
+        if (child.name === 'Bullion_Medal_Root') glbBullion = child;
+        if (child.name === 'Solana_Shard_Root') glbSolana = child;
+        if (child.name === 'Gimbal_Ring_Outer') glbGimbalOuter = child;
+        if (child.name === 'Gimbal_Ring_Mid') glbGimbalMid = child;
+        if (child.name === 'Caliper_Iris_Root') glbCaliperIris = child;
+
+        // Hide all Blender raw geometry defects & duplicate objects
+        const hideNames = [
+          'Chassis_Main_Slab', 'Chassis_Perimeter_Rail',
+          'Chassis_Trunnion_Flute_0', 'Chassis_Trunnion_Flute_1',
+          'Chassis_Trunnion_Axle_0', 'Chassis_Trunnion_Axle_1',
+          'Chassis_Trunnion_Nut_0', 'Chassis_Trunnion_Nut_1',
+          'Gimbal_Laser_Waveguide',
+          'USDC_Coin_Dial',
+          'Solana_Crystal_Shard', 'Solana_Laser_Filament'
+        ];
+        if (hideNames.includes(child.name) || 
+            (child.name && (child.name.startsWith('Relay_') || 
+                            child.name.startsWith('Caliper_') || 
+                            child.name.startsWith('USDC_Symbol_') || 
+                            child.name.startsWith('Solana_Satellite_') || 
+                            child.name.startsWith('Gimbal_Lug_')))) {
+          child.visible = false;
+        }
+
+        // Machined Dark Obsidian Well & Circular Chamber
+        if (child.name === 'Chassis_Docking_Well' || child.name === 'Chassis_Inner_Trench') {
+          child.material = new THREE.MeshStandardMaterial({
+            color: 0x050810,
+            metalness: 0.85,
+            roughness: 0.30,
+            envMap: scene.environment,
+            envMapIntensity: 1.2
+          });
+        }
+        if (child.name === 'Chassis_Luminous_Bus_Ring') {
+          child.material = new THREE.MeshBasicMaterial({
+            color: 0x00ffa3
+          });
+        }
+
+        // Apply Optical-Grade Refractive Diamond Material to Solana Crystal Shard
+        if (child.name === 'Solana_Crystal_Shard') {
+          child.material = new THREE.MeshPhysicalMaterial({
+            color: 0x120426,
+            emissive: 0x9945ff,
+            emissiveIntensity: 0.65,
+            roughness: 0.12,
+            metalness: 0.88,
+            clearcoat: 1.0,
+            clearcoatRoughness: 0.05,
+            flatShading: true,
+            envMap: scene.environment,
+            envMapIntensity: 2.8
+          });
+        }
+
+        // Internal Singularity Laser Filament
+        if (child.name === 'Solana_Laser_Filament') {
+          child.material = new THREE.MeshBasicMaterial({
+            color: 0x9945ff
+          });
+        }
+
+        // Outer Titanium & Palladium PBR tuning
+        if (child.isMesh && child.material && child.name !== 'USDC_Coin_Dial' && child.name !== 'Solana_Crystal_Shard' && child.name !== 'Solana_Laser_Filament' && child.name !== 'Chassis_Main_Slab' && child.name !== 'Chassis_Docking_Well' && child.name !== 'Chassis_Perimeter_Rail' && child.name !== 'Chassis_Luminous_Bus_Ring') {
+          child.material.envMap = scene.environment;
+          child.material.envMapIntensity = 1.8;
+          child.material.needsUpdate = true;
+        }
+      });
+
+      // Ground the monolithic chassis base directly into the world environment
+      if (glbChassis) {
+        scene.add(glbChassis);
+        glbChassis.scale.set(0.42, 0.42, 0.42);
+        glbChassis.position.set(0, 0, 0);
+      }
+
+      // Mount high-precision planar proof faceplates on both faces of the coin
+      if (glbBullion) {
+        const faceGeom = new THREE.CircleGeometry(0.88, 64);
+        const faceMat = new THREE.MeshStandardMaterial({
+          map: usdcTexture,
+          bumpMap: usdcTexture,
+          bumpScale: 0.045,
+          color: 0xffffff,
+          metalness: 0.94,
+          roughness: 0.16,
+          envMap: scene.environment,
+          envMapIntensity: 2.2
+        });
+        
+        const proofFaceFront = new THREE.Mesh(faceGeom, faceMat);
+        proofFaceFront.position.set(0, 0, 0.078);
+        glbBullion.add(proofFaceFront);
+
+        const proofFaceRear = new THREE.Mesh(faceGeom, faceMat);
+        proofFaceRear.position.set(0, 0, -0.078);
+        proofFaceRear.rotation.y = Math.PI;
+        glbBullion.add(proofFaceRear);
+      }
+
+      
+      // =========================================================================
+      // THE FORGED SOLANA CHRONO-BULLION (PRECISION CNC TITANIUM & SAPPHIRE CORE)
+      // =========================================================================
+      if (glbSolana) {
+        // Hide raw low-poly Blender primitives
+        glbSolana.traverse((child) => {
+          if (child.name === 'Solana_Crystal_Shard' || child.name === 'Solana_Laser_Filament' || (child.name && child.name.startsWith('Solana_Satellite_'))) {
+            child.visible = false;
+          }
+        });
+
+        const solanaBullionGroup = new THREE.Group();
+        glbSolana.add(solanaBullionGroup);
+
+        // 1. Heavy Machined Titanium Outer Rim & Reeded Bezel (Exact USDC Dimensions)
+        const solRimGeom = new THREE.CylinderGeometry(0.95, 0.95, 0.12, 80);
+        solRimGeom.rotateX(Math.PI / 2);
+        const solRimMat = new THREE.MeshStandardMaterial({
+          color: 0x182030,
+          metalness: 0.96,
+          roughness: 0.12,
+          envMap: scene.environment,
+          envMapIntensity: 2.4
+        });
+        const solRimMesh = new THREE.Mesh(solRimGeom, solRimMat);
+        solanaBullionGroup.add(solRimMesh);
+
+        // Precision 45° Chamfer Rings on Both Edges
+        const chamferGeom = new THREE.TorusGeometry(0.95, 0.024, 16, 80);
+        const chamferMat = new THREE.MeshStandardMaterial({
+          color: 0x94a3b8,
+          metalness: 0.98,
+          roughness: 0.08,
+          envMap: scene.environment,
+          envMapIntensity: 2.8
+        });
+        const chamferF = new THREE.Mesh(chamferGeom, chamferMat);
+        chamferF.position.z = 0.06;
+        solanaBullionGroup.add(chamferF);
+        const chamferR = new THREE.Mesh(chamferGeom, chamferMat);
+        chamferR.position.z = -0.06;
+        solanaBullionGroup.add(chamferR);
+
+        // 2. High-Resolution Procedural Solana Radial Sunburst Dial Face (2048x2048)
+        const solDialCanvas = document.createElement("canvas");
+        solDialCanvas.width = 2048; solDialCanvas.height = 2048;
+        const sCtx = solDialCanvas.getContext("2d");
+        const cx = 1024, cy = 1024;
+
+        // Midnight Obsidian Base with Deep Radial Hue
+        const baseGrad = sCtx.createRadialGradient(cx, cy, 200, cx, cy, 1024);
+        baseGrad.addColorStop(0, "#0c0818");
+        baseGrad.addColorStop(0.65, "#060710");
+        baseGrad.addColorStop(1, "#020408");
+        sCtx.fillStyle = baseGrad;
+        sCtx.fillRect(0, 0, 2048, 2048);
+
+        // 240 Fine Lathe Micro-Grooves (Concentric Anisotropic Tracks)
+        for (let r = 260; r < 980; r += 4) {
+          sCtx.strokeStyle = (r % 24 === 0) ? "rgba(153, 69, 255, 0.22)" : "rgba(255, 255, 255, 0.04)";
+          sCtx.lineWidth = (r % 24 === 0) ? 2.5 : 1.0;
+          sCtx.beginPath();
+          sCtx.arc(cx, cy, r, 0, Math.PI * 2);
+          sCtx.stroke();
+        }
+
+        // 72 Radial Azimuth Tick Marks
+        for (let i = 0; i < 72; i++) {
+          const a = (i * Math.PI) / 36;
+          const isMajor = i % 6 === 0;
+          const r1 = isMajor ? 880 : 920;
+          const r2 = 960;
+          sCtx.strokeStyle = isMajor ? "#14f195" : "rgba(148, 163, 184, 0.45)";
+          sCtx.lineWidth = isMajor ? 4 : 2;
+          sCtx.beginPath();
+          sCtx.moveTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1);
+          sCtx.lineTo(cx + Math.cos(a) * r2, cy + Math.sin(a) * r2);
+          sCtx.stroke();
+        }
+
+        // Micro-Engraved Horological Typography around Bezel Rim
+        sCtx.save();
+        sCtx.translate(cx, cy);
+        sCtx.fillStyle = "rgba(226, 232, 240, 0.85)";
+        sCtx.font = "bold 26px 'JetBrains Mono', monospace";
+        sCtx.textAlign = "center";
+        const rimText = "SOLANA SETTLEMENT // HIGH THROUGHPUT LEDGER // ZERO-KEY SPL ASSET // 400MS EPOCH // ";
+        const charAngle = (Math.PI * 2) / rimText.length;
+        for (let i = 0; i < rimText.length; i++) {
+          sCtx.save();
+          sCtx.rotate(i * charAngle);
+          sCtx.fillText(rimText[i], 0, -840);
+          sCtx.restore();
+        }
+        sCtx.restore();
+
+        const solDialTexture = new THREE.CanvasTexture(solDialCanvas);
+        const solDialMat = new THREE.MeshStandardMaterial({
+          map: solDialTexture,
+          bumpMap: solDialTexture,
+          bumpScale: 0.035,
+          metalness: 0.92,
+          roughness: 0.16,
+          envMap: scene.environment,
+          envMapIntensity: 2.2
+        });
+
+        const dialGeom = new THREE.CircleGeometry(0.88, 64);
+        const dialFront = new THREE.Mesh(dialGeom, solDialMat);
+        dialFront.position.z = 0.062;
+        solanaBullionGroup.add(dialFront);
+
+        const dialRear = new THREE.Mesh(dialGeom, solDialMat);
+        dialRear.position.z = -0.062;
+        dialRear.rotation.y = Math.PI;
+        solanaBullionGroup.add(dialRear);
+
+        // 3. Central Recessed Optical Sapphire Aperture
+        const saphGeom = new THREE.CylinderGeometry(0.55, 0.55, 0.02, 48);
+        saphGeom.rotateX(Math.PI / 2);
+        const saphMat = new THREE.MeshPhysicalMaterial({
+          color: 0x080414,
+          transmission: 0.75,
+          ior: 1.77,
+          roughness: 0.03,
+          metalness: 0.15,
+          clearcoat: 1.0,
+          clearcoatRoughness: 0.02,
+          envMap: scene.environment,
+          envMapIntensity: 2.6
+        });
+        const saphLensF = new THREE.Mesh(saphGeom, saphMat);
+        saphLensF.position.z = 0.068;
+        solanaBullionGroup.add(saphLensF);
+
+        const saphLensR = new THREE.Mesh(saphGeom, saphMat);
+        saphLensR.position.z = -0.068;
+        solanaBullionGroup.add(saphLensR);
+
+        // 4. Precision CNC-Machined Chamfered Solana Monolith Parallelograms
+        function createBeveledSolanaBar(slant) {
+          const shape = new THREE.Shape();
+          const w = 0.32, h = 0.046;
+          shape.moveTo(-w - slant, -h);
+          shape.lineTo(w - slant, -h);
+          shape.lineTo(w + slant, h);
+          shape.lineTo(-w + slant, h);
+          shape.closePath();
+          return new THREE.ExtrudeGeometry(shape, {
+            depth: 0.028,
+            bevelEnabled: true,
+            bevelSegments: 3,
+            steps: 1,
+            bevelSize: 0.006,
+            bevelThickness: 0.006
+          });
+        }
+
+        const geomTop = createBeveledSolanaBar(0.08); geomTop.center();
+        const geomMid = createBeveledSolanaBar(-0.08); geomMid.center();
+        const geomBot = createBeveledSolanaBar(0.08); geomBot.center();
+
+        // Forged Iridescent Metallic Shader
+        const matTop = new THREE.MeshStandardMaterial({
+          color: 0x9945ff, emissive: 0x6b21a8, emissiveIntensity: 0.85,
+          metalness: 0.95, roughness: 0.10, envMap: scene.environment, envMapIntensity: 2.6
+        });
+        const matMid = new THREE.MeshStandardMaterial({
+          color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.85,
+          metalness: 0.95, roughness: 0.10, envMap: scene.environment, envMapIntensity: 2.6
+        });
+        const matBot = new THREE.MeshStandardMaterial({
+          color: 0x14f195, emissive: 0x059669, emissiveIntensity: 0.85,
+          metalness: 0.95, roughness: 0.10, envMap: scene.environment, envMapIntensity: 2.6
+        });
+
+        const barPositions = [
+          { geom: geomTop, mat: matTop, y: 0.17 },
+          { geom: geomMid, mat: matMid, y: 0.00 },
+          { geom: geomBot, mat: matBot, y: -0.17 }
+        ];
+
+        barPositions.forEach(({ geom, mat, y }) => {
+          // Front Face (floating at z = 0.085)
+          const bF = new THREE.Mesh(geom, mat);
+          bF.position.set(0, y, 0.085);
+          solanaBullionGroup.add(bF);
+
+          // Rear Face (floating at z = -0.085)
+          const bR = new THREE.Mesh(geom, mat);
+          bR.position.set(0, y, -0.085);
+          bR.rotation.y = Math.PI;
+          solanaBullionGroup.add(bR);
+        });
+
+        // 5. Dual Precision Aerospace Gyro Rings
+        const gyro1Geom = new THREE.TorusGeometry(1.08, 0.008, 16, 80);
+        const gyro1Mat = new THREE.MeshBasicMaterial({ color: 0x14f195 });
+        window.solGyroRing1 = new THREE.Mesh(gyro1Geom, gyro1Mat);
+        window.solGyroRing1.rotation.x = Math.PI / 5;
+        solanaBullionGroup.add(window.solGyroRing1);
+
+        const gyro2Geom = new THREE.TorusGeometry(1.22, 0.008, 16, 80);
+        const gyro2Mat = new THREE.MeshBasicMaterial({ color: 0x9945ff });
+        window.solGyroRing2 = new THREE.Mesh(gyro2Geom, gyro2Mat);
+        window.solGyroRing2.rotation.x = -Math.PI / 5;
+        solanaBullionGroup.add(window.solGyroRing2);
+      }
+      
+      console.log('Cinema-Grade Swap Airlock Vault GLB Loaded Successfully!');
+    }
+
+    if (window.SWAP_VAULT_GLB_BASE64) {
+      try {
+        const buffer = base64ToArrayBuffer(window.SWAP_VAULT_GLB_BASE64);
+        gltfLoader.parse(buffer, '', onModelLoaded, (err) => {
+          console.error('Base64 parse error, falling back to fetch:', err);
+          gltfLoader.load('models/swap_airlock_vault.glb', onModelLoaded);
+        });
+      } catch (e) {
+        gltfLoader.load('models/swap_airlock_vault.glb', onModelLoaded);
+      }
+    } else {
+      gltfLoader.load('models/swap_airlock_vault.glb', onModelLoaded, undefined, (err) => {
+        console.error('Error loading vault GLB:', err);
+      });
+    }
+
+    // ------------------------------------------
+    // 1. SCULPTED 3D USDC TOKEN (FROSTED SAPPHIRE)
+    // ------------------------------------------
+    const usdcGroup = new THREE.Group();
+    usdcGroup.position.set(0, 0, 0.40);
+    // vaultRig.add(usdcGroup);
+
+    // Precision Sculpted Proof Coin (Opaque Brushed Palladium + Deep Sunburst Sapphire Dial)
+    const coinGeom = new THREE.CylinderGeometry(0.95, 0.95, 0.10, 80);
+    coinGeom.rotateX(Math.PI / 2);
+
+    const rimMat = new THREE.MeshStandardMaterial({
+      color: 0xe2e8f0, metalness: 0.98, roughness: 0.12, envMapIntensity: 2.2
+    });
+
+    const proofFaceMat = new THREE.MeshStandardMaterial({
+      map: usdcTexture,
+      bumpMap: usdcTexture,
+      bumpScale: 0.045,
+      color: 0xffffff,
+      metalness: 0.92,
+      roughness: 0.18,
+      envMapIntensity: 1.8
+    });
+
+    const usdcCoinMesh = new THREE.Mesh(coinGeom, [rimMat, proofFaceMat, proofFaceMat]);
+    usdcGroup.add(usdcCoinMesh);
+
+    // Precision Reeded Outer Bezel
+    const reededRim = new THREE.Mesh(
+      new THREE.TorusGeometry(0.95, 0.038, 16, 80),
+      new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.98, roughness: 0.08 })
+    );
+    usdcGroup.add(reededRim);
+
+    // Micro-Fee Droplet (Visible ONLY during active transfer Phase 2)
+    const dropletGeom = new THREE.SphereGeometry(0.065, 20, 20);
+    const dropletMat = new THREE.MeshBasicMaterial({ color: 0x00ffa3 });
+    const dropletMesh = new THREE.Mesh(dropletGeom, dropletMat);
+    dropletMesh.position.set(0.95, 0.45, 0.12);
+    dropletMesh.visible = false;
+    usdcGroup.add(dropletMesh);
+
+    // ------------------------------------------
+    // 2. HOLOGRAPHIC x402 LASER AIRLOCK GATE
+    // ------------------------------------------
+    const gateGroup = new THREE.Group();
+    gateGroup.position.set(0, 0, 0.0);
+    // vaultRig.add(gateGroup);
+
+    // Outer Aerospace Titanium Ring
+    const gateRingGeom = new THREE.TorusGeometry(1.48, 0.045, 16, 80);
+    const gateRingMat = new THREE.MeshStandardMaterial({
+      color: 0x182030, roughness: 0.22, metalness: 0.94
+    });
+    const gateRing = new THREE.Mesh(gateRingGeom, gateRingMat);
+    gateGroup.add(gateRing);
+
+    // Holographic Precision Laser Ring (Clear aperture, zero whiteout)
+    const laserDiscGeom = new THREE.TorusGeometry(1.44, 0.015, 16, 80);
+    const laserDiscMat = new THREE.MeshBasicMaterial({
+      color: 0xf87171, transparent: true, opacity: 0.75, blending: THREE.AdditiveBlending
+    });
+    const laserDisc = new THREE.Mesh(laserDiscGeom, laserDiscMat);
+    gateGroup.add(laserDisc);
+
+    // Inner Concentric Reticle Ring
+    const innerReticle = new THREE.Mesh(
+      new THREE.TorusGeometry(1.15, 0.008, 16, 64),
+      new THREE.MeshBasicMaterial({ color: 0xf87171, transparent: true, opacity: 0.45, blending: THREE.AdditiveBlending })
+    );
+    gateGroup.add(innerReticle);
+
+    // Clean Laser Aperture Reticle (Decluttered - No slicing crosshairs)
+    const crosshairMat = new THREE.LineBasicMaterial({
+      color: 0xf87171, transparent: true, opacity: 0.0
+    });
+
+    // 8 Peripheral Status LEDs
+    const ledPods = [];
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      const p = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.04, 0.04, 0.06, 8),
+        new THREE.MeshBasicMaterial({ color: 0xf87171 })
+      );
+      p.rotation.x = Math.PI / 2;
+      p.position.set(Math.cos(a) * 1.48, Math.sin(a) * 1.48, 0.02);
+      gateGroup.add(p);
+      ledPods.push(p);
+    }
+
+    // ------------------------------------------
+    // 3. OPTICAL PRISMATIC BEAM SPLITTER (JUPITER/DFLOW/OKX)
+    // ------------------------------------------
+    const prismGeom = new THREE.CylinderGeometry(0.40, 0.40, 0.75, 3);
+    const prismMat = new THREE.MeshPhysicalMaterial({
+      color: 0x051a2e, roughness: 0.02, metalness: 0.1,
+      transmission: 0.98, ior: 1.72, thickness: 1.4,
+      transparent: true, clearcoat: 1.0
+    });
+    const prismMesh = new THREE.Mesh(prismGeom, prismMat);
+    prismMesh.position.set(0, 0, -0.25);
+    // vaultRig.add(prismMesh);
+
+    // Procedural Solana Brand Spectrum Canvas (Iconic Purple #9945ff -> Cyan #14f195)
+    const solCanvas = document.createElement("canvas");
+    solCanvas.width = 512; solCanvas.height = 512;
+    const sCtx = solCanvas.getContext("2d");
+    const solGrad = sCtx.createLinearGradient(0, 0, 512, 512);
+    solGrad.addColorStop(0, "#9945ff"); // Solana Vibrant Purple
+    solGrad.addColorStop(0.35, "#7a22ff");
+    solGrad.addColorStop(0.65, "#14f195"); // Solana Electric Emerald
+    solGrad.addColorStop(1, "#00ffa3");
+    sCtx.fillStyle = solGrad;
+    sCtx.fillRect(0, 0, 512, 512);
+
+    // Subtle micro-geometric facets on texture
+    sCtx.strokeStyle = "rgba(255, 255, 255, 0.25)";
+    sCtx.lineWidth = 3;
+    for (let i = 0; i < 512; i += 64) {
+      sCtx.beginPath(); sCtx.moveTo(i, 0); sCtx.lineTo(512, 512 - i); sCtx.stroke();
+    }
+    const solanaTexture = new THREE.CanvasTexture(solCanvas);
+
+    // ------------------------------------------
+    // 4. THE RADIANT SOLANA (SOL) PRISMATIC CRYSTAL SHARD
+    // ------------------------------------------
+    const solanaGroup = new THREE.Group();
+    solanaGroup.position.set(0, 0, -0.85);
+    solanaGroup.scale.set(0.35, 0.35, 0.35);
+    // vaultRig.add(solanaGroup);
+
+    // Perfectly Proportioned Solana Diamond Crystal (Eliminates frustum clipping!)
+    const shardGeom = new THREE.OctahedronGeometry(0.72, 0);
+    shardGeom.scale(0.75, 1.15, 0.55); // Total height ~1.65, beautifully framed
+
+    // Optical-Grade Luxury Solana Crystal Material
+    const solanaMat = new THREE.MeshPhysicalMaterial({
+      map: solanaTexture,
+      color: 0x14052b,
+      emissive: 0x9945ff,
+      emissiveIntensity: 0.45,
+      roughness: 0.03,
+      metalness: 0.20,
+      transmission: 0.88,
+      ior: 2.42, // Genuine Diamond Refraction index
+      thickness: 1.8,
+      clearcoat: 1.0,
+      clearcoatRoughness: 0.01,
+      flatShading: true
+    });
+    const solanaShard = new THREE.Mesh(shardGeom, solanaMat);
+    solanaGroup.add(solanaShard);
+
+    // Inner Laser Singularity (Emerald Core that pulses with Solana energy)
+    const solCoreEmerald = new THREE.Mesh(
+      new THREE.OctahedronGeometry(0.28, 0),
+      new THREE.MeshBasicMaterial({ color: 0x00ffa3, wireframe: false })
+    );
+    solanaGroup.add(solCoreEmerald);
+
+    // Single Slender Gyro Gimbal
+    const solGyro = new THREE.Mesh(
+      new THREE.TorusGeometry(0.85, 0.008, 16, 64),
+      new THREE.MeshStandardMaterial({ color: 0x00ffa3, metalness: 0.95, roughness: 0.1 })
+    );
+    solGyro.rotation.x = Math.PI / 4;
+    solanaGroup.add(solGyro);
+    const solStar = solCoreEmerald;
+
+    // Dual Orthogonal Gyro Rings
+    const solGyroMat = new THREE.MeshStandardMaterial({
+      color: 0x94a3b8, metalness: 0.96, roughness: 0.15
+    });
+    const solGyro1 = new THREE.Mesh(new THREE.TorusGeometry(0.95, 0.010, 8, 64), solGyroMat);
+    const solGyro2 = new THREE.Mesh(new THREE.TorusGeometry(1.10, 0.008, 8, 64), solGyroMat);
+    
+
+    // ------------------------------------------
+    // 5. GROUNDED CRYOGENIC CHAMBER MICRO-MOTES (Subtle & Grounded)
+    // ------------------------------------------
+    const particleCount = 180;
+    const pGeom = new THREE.BufferGeometry();
+    const pPos = new Float32Array(particleCount * 3);
+    const pVel = [];
+    for (let i = 0; i < particleCount; i++) {
+      const r = Math.random() * 1.6;
+      const ang = Math.random() * Math.PI * 2;
+      pPos[i*3] = Math.cos(ang) * r;
+      pPos[i*3+1] = -1.45 + Math.random() * 0.85;
+      pPos[i*3+2] = Math.sin(ang) * r;
+      pVel.push({
+        x: (Math.random() - 0.5) * 0.002,
+        y: 0.001 + Math.random() * 0.003,
+        z: (Math.random() - 0.5) * 0.002,
+        speed: 0.4 + Math.random() * 0.6
+      });
+    }
+    pGeom.setAttribute("position", new THREE.BufferAttribute(pPos, 3));
+    const pColors = new Float32Array(particleCount * 3);
+    for (let i = 0; i < particleCount; i++) {
+      if (i % 2 === 0) {
+        // Solana Emerald (#00ffa3)
+        pColors[i*3] = 0.0; pColors[i*3+1] = 1.0; pColors[i*3+2] = 0.64;
+      } else {
+        // Solana Electric Cyan (#38bdf8)
+        pColors[i*3] = 0.22; pColors[i*3+1] = 0.74; pColors[i*3+2] = 0.98;
+      }
+    }
+    pGeom.setAttribute("color", new THREE.BufferAttribute(pColors, 3));
+
+    const pMat = new THREE.PointsMaterial({
+      size: 0.016, vertexColors: true, transparent: true, opacity: 0.55,
+      blending: THREE.AdditiveBlending
+    });
+    const particles = new THREE.Points(pGeom, pMat);
+    scene.add(particles);
+
+    // ------------------------------------------
+    // 6. MULTI-HOP SATELLITE NODES & COHERENT FIBER-OPTIC RELAYS
+    // ------------------------------------------------------------
+    function createSatelliteNode(pos, nameColor, labelText, yOffset) {
+      const g = new THREE.Group();
+      g.position.copy(pos);
+
+      // Heavy Stepped Palladium Riser Collar
+      const riserGeom = new THREE.CylinderGeometry(0.14, 0.17, 0.06, 6);
+      riserGeom.rotateX(Math.PI / 2);
+      const riserMat = new THREE.MeshStandardMaterial({
+        color: 0x111625,
+        roughness: 0.18,
+        metalness: 0.94,
+        envMap: scene.environment,
+        envMapIntensity: 2.0
+      });
+      const chip = new THREE.Mesh(riserGeom, riserMat);
+      g.add(chip);
+
+      // Neon Collector Ring
+      const ringGeom = new THREE.RingGeometry(0.10, 0.14, 6);
+      const ringMat = new THREE.MeshBasicMaterial({ color: nameColor, side: THREE.DoubleSide });
+      const edgeRing = new THREE.Mesh(ringGeom, ringMat);
+      edgeRing.position.z = 0.035;
+      g.add(edgeRing);
+
+      // Floating Optical Collector Prism
+      const prismGeom = new THREE.OctahedronGeometry(0.065, 0);
+      const prismMat = new THREE.MeshPhysicalMaterial({
+        color: nameColor,
+        emissive: nameColor,
+        emissiveIntensity: 0.85,
+        roughness: 0.04,
+        metalness: 0.2,
+        transmission: 0.65,
+        ior: 1.62
+      });
+      const prism = new THREE.Mesh(prismGeom, prismMat);
+      prism.position.z = 0.12;
+      g.add(prism);
+
+      // High-Frequency Pulse Splash Ring
+      const splashGeom = new THREE.RingGeometry(0.03, 0.08, 32);
+      const splashMat = new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        transparent: true,
+        opacity: 0.0,
+        blending: THREE.AdditiveBlending,
+        side: THREE.DoubleSide
+      });
+      const splashMesh = new THREE.Mesh(splashGeom, splashMat);
+      splashMesh.position.z = 0.15;
+      g.add(splashMesh);
+
+      // 3D Staggered Floating Telemetry Label Sprite (Zero UI overlap)
+      const labelCanvas = document.createElement("canvas");
+      labelCanvas.width = 256; labelCanvas.height = 64;
+      const lCtx = labelCanvas.getContext("2d");
+      lCtx.fillStyle = "rgba(4, 8, 16, 0.82)";
+      if (lCtx.roundRect) { lCtx.roundRect(4, 4, 248, 56, 8); lCtx.fill(); } else { lCtx.fillRect(4, 4, 248, 56); }
+      lCtx.strokeStyle = "#" + nameColor.toString(16).padStart(6, '0');
+      lCtx.lineWidth = 2.0;
+      lCtx.stroke();
+      lCtx.fillStyle = "#ffffff";
+      lCtx.font = "bold 20px 'JetBrains Mono', monospace";
+      lCtx.textAlign = "center";
+      lCtx.fillText(labelText, 128, 38);
+
+      const labelTex = new THREE.CanvasTexture(labelCanvas);
+      const spriteMat = new THREE.SpriteMaterial({ map: labelTex, transparent: true, opacity: 0.90 });
+      const sprite = new THREE.Sprite(spriteMat);
+      sprite.scale.set(0.44, 0.11, 1.0);
+      sprite.position.set(0, yOffset, 0);
+      g.add(sprite);
+
+      const beacon = new THREE.PointLight(nameColor, 0, 4);
+      beacon.position.z = 0.18;
+      g.add(beacon);
+
+      return { group: g, chip, edgeRing, prism, splashMesh, splashMat, sprite, light: beacon, baseOffset: yOffset };
+    }
+
+    // Staggered Relay Pedestal Coordinates (Open front-right sweeping arc, 100% visible, zero UI occlusion)
+    const satJupiterPos = new THREE.Vector3(0.55, -0.80, 1.45);
+    const satDflowPos   = new THREE.Vector3(0.95, -0.80, 1.25);
+    const satOkxPos     = new THREE.Vector3(1.30, -0.80, 0.95);
+
+    const satJupiter = createSatelliteNode(satJupiterPos, 0x00ffa3, "JUPITER // 99.4%", 0.22);
+    const satDflow   = createSatelliteNode(satDflowPos,   0x38bdf8, "DFLOW // 0.4%",    0.26);
+    const satOkx     = createSatelliteNode(satOkxPos,     0xfacc15, "OKX // 0.2%",      0.22);
+
+    scene.add(satJupiter.group);
+    scene.add(satDflow.group);
+    scene.add(satOkx.group);
+
+    // ==========================================
+    // FLOOR NEON CIRCUIT TRACES & EXPANDING SHOCKWAVE
+    // ==========================================
+    const floorTraceGroup = new THREE.Group();
+    scene.add(floorTraceGroup);
+
+    function createFloorTrace(fromVec, toVec, colorHex) {
+      const points = [];
+      const segs = 20;
+      for (let i = 0; i <= segs; i++) {
+        const alpha = i / segs;
+        const pt = fromVec.clone().lerp(toVec, alpha);
+        pt.y = -0.908;
+        points.push(pt);
+      }
+      const geom = new THREE.BufferGeometry().setFromPoints(points);
+      const mat = new THREE.LineBasicMaterial({
+        color: colorHex,
+        transparent: true,
+        opacity: 0.25,
+        blending: THREE.AdditiveBlending
+      });
+      const line = new THREE.Line(geom, mat);
+      floorTraceGroup.add(line);
+      return { line, mat, colorHex };
+    }
+
+    const traceJupiter = createFloorTrace(new THREE.Vector3(0.35, -0.908, 0.60), satJupiterPos, 0x00ffa3);
+    const traceDflow   = createFloorTrace(new THREE.Vector3(0.55, -0.908, 0.45), satDflowPos,   0x38bdf8);
+    const traceOkx     = createFloorTrace(new THREE.Vector3(0.65, -0.908, 0.30), satOkxPos,     0xfacc15);
+
+    // Expanding Settlement Shockwave Ring
+    const shockwaveGeom = new THREE.RingGeometry(0.12, 0.22, 64);
+    shockwaveGeom.rotateX(-Math.PI / 2);
+    const shockwaveMat = new THREE.MeshBasicMaterial({
+      color: 0x14f195,
+      transparent: true,
+      opacity: 0.0,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending
+    });
+    const shockwaveMesh = new THREE.Mesh(shockwaveGeom, shockwaveMat);
+    shockwaveMesh.position.set(0, -0.905, 0);
+    scene.add(shockwaveMesh);
+    let shockwaveTime = 999.0;
+
+    // Coherent Fiber-Optic Laser Conduits (ZERO GIANT WHITE BLOBS)
+    function createCoherentLaserConduit(targetPos, colorHex) {
+      const dir = targetPos.clone();
+      const mid = dir.clone().multiplyScalar(0.5);
+
+      // 1. Razor-Thin Core Needle Filament (Radius 0.003)
+      const coreGeom = new THREE.CylinderGeometry(0.0035, 0.0035, 1.0, 16);
+      coreGeom.rotateX(Math.PI / 2);
+      const coreMat = new THREE.MeshBasicMaterial({
+        color: colorHex,
+        transparent: true,
+        opacity: 0.0,
+        blending: THREE.AdditiveBlending
+      });
+      const coreMesh = new THREE.Mesh(coreGeom, coreMat);
+      coreMesh.position.copy(mid);
+      coreMesh.lookAt(targetPos);
+      scene.add(coreMesh);
+
+      // 2. Soft Volumetric Diffraction Halo (Radius 0.012, ultra-low opacity)
+      const haloGeom = new THREE.CylinderGeometry(0.012, 0.012, 1.0, 16);
+      haloGeom.rotateX(Math.PI / 2);
+      const haloMat = new THREE.MeshBasicMaterial({
+        color: colorHex,
+        transparent: true,
+        opacity: 0.0,
+        blending: THREE.AdditiveBlending
+      });
+      const haloMesh = new THREE.Mesh(haloGeom, haloMat);
+      haloMesh.position.copy(mid);
+      haloMesh.lookAt(targetPos);
+      scene.add(haloMesh);
+
+      // 3. High-Velocity Micro-Photon Streak (Length 0.08, Radius 0.004) - NO SPHERES!
+      const streakGeom = new THREE.CylinderGeometry(0.004, 0.004, 0.08, 8);
+      streakGeom.rotateX(Math.PI / 2);
+      const streakMat = new THREE.MeshBasicMaterial({
+        color: 0xffffff,
+        blending: THREE.AdditiveBlending,
+        transparent: true,
+        opacity: 0.90
+      });
+      const p1 = new THREE.Mesh(streakGeom, streakMat);
+      const p2 = new THREE.Mesh(streakGeom, streakMat);
+      p1.visible = false; p2.visible = false;
+      scene.add(p1); scene.add(p2);
+
+      return { beam: coreMesh, halo: haloMesh, beamMat: coreMat, haloMat, targetPos, p1, p2 };
+    }
+
+    const conduitJupiter = createCoherentLaserConduit(satJupiterPos, 0x00ffa3);
+    const conduitDflow   = createCoherentLaserConduit(satDflowPos,   0x38bdf8);
+    const conduitOkx     = createCoherentLaserConduit(satOkxPos,     0xfacc15);
+    
+    // State Variables
+    let isSettled = false;
+    let currentPhase = 1; // 1 = 402 challenge, 2 = SPL micro-transfer, 3 = settled
+    let kineticProgress = 0.0;
+    let settleRotationTime = 0.0;
+    let targetMouseX = 0, targetMouseY = 0;
+    let mouseX = 0, mouseY = 0;
+    let clock = new THREE.Clock();
+
+    // ============================================================================
+    // PRODUCTION INERTIAL DRAG & TRACKBALL ENGINE FOR #webgl-canvas
+    // ============================================================================
+    let isDragging = false;
+    let previousPointerX = 0;
+    let previousPointerY = 0;
+    let pointerDeltaX = 0;
+    let pointerDeltaY = 0;
+    let dragRotationX = 0;
+    let dragRotationY = 0;
+    let dragVelocityX = 0;
+    let dragVelocityY = 0;
+
+    canvas.style.cursor = "grab";
+
+    canvas.addEventListener("pointerdown", (e) => {
+      if (e.button !== 0 && e.pointerType === "mouse") return;
+      isDragging = true;
+      previousPointerX = e.clientX;
+      previousPointerY = e.clientY;
+      dragVelocityX = 0;
+      dragVelocityY = 0;
+      canvas.style.cursor = "grabbing";
+      canvas.setPointerCapture(e.pointerId);
+    });
+
+    canvas.addEventListener("pointermove", (e) => {
+      // Always track mouse for ambient lighting and parallax
+      targetMouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+      targetMouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+
+      if (!isDragging) return;
+      pointerDeltaX = e.clientX - previousPointerX;
+      pointerDeltaY = e.clientY - previousPointerY;
+      previousPointerX = e.clientX;
+      previousPointerY = e.clientY;
+
+      const sensitivity = 0.0055;
+      dragRotationY += pointerDeltaX * sensitivity;
+      dragRotationX += pointerDeltaY * sensitivity;
+
+      dragVelocityX = pointerDeltaX * sensitivity;
+      dragVelocityY = pointerDeltaY * sensitivity;
+    });
+
+    const endDrag = (e) => {
+      if (!isDragging) return;
+      isDragging = false;
+      canvas.style.cursor = "grab";
+      try { canvas.releasePointerCapture(e.pointerId); } catch(err) {}
+    };
+
+    canvas.addEventListener("pointerup", endDrag);
+    canvas.addEventListener("pointercancel", endDrag);
+
+    // Ergonomic FOV Zoom via Wheel (between 18° and 38°)
+    window.addEventListener("wheel", (e) => {
+      camera.fov = Math.max(18, Math.min(38, camera.fov + e.deltaY * 0.015));
+      camera.updateProjectionMatrix();
+    }, { passive: true });
+
+    function animate() {
+      requestAnimationFrame(animate);
+      const t = clock.getElapsedTime();
+
+      // Damped spring mouse tracking
+      mouseX += (targetMouseX - mouseX) * 0.05;
+      mouseY += (targetMouseY - mouseY) * 0.05;
+
+      // Inertial momentum with exponential decay (0.94 damping)
+      if (!isDragging) {
+        dragRotationY += dragVelocityX;
+        dragRotationX += dragVelocityY;
+        dragVelocityX *= 0.94;
+        dragVelocityY *= 0.94;
+      }
+      dragRotationX = Math.max(-0.40, Math.min(0.65, dragRotationX));
+
+      // ------------------------------------------
+      // CINEMATIC ORBIT CAMERA (Ground stays rock solid!)
+      // ------------------------------------------
+      const orbitDist = 5.2;
+      const orbitAngleY = 0.18 + dragRotationY + mouseX * 0.20;
+      const orbitElev = 0.45 + dragRotationX - mouseY * 0.25;
+      camera.position.x = Math.sin(orbitAngleY) * orbitDist - 0.20;
+      camera.position.z = Math.cos(orbitAngleY) * orbitDist;
+      camera.position.y = Math.max(-0.10, Math.min(2.2, orbitElev));
+      camera.lookAt(-0.10, -0.25, 0);
+
+      // Kinetic Metamorphic Interpolation (0.0 = USDC Coin Hero, 1.0 = Solana Crystal Shard Hero)
+      const targetProg = (currentPhase === 3) ? 1.0 : (currentPhase === 2 ? 0.35 : 0.0);
+      kineticProgress += (targetProg - kineticProgress) * 0.06;
+
+      // Legacy procedural groups hidden
+      usdcGroup.visible = false;
+      gateGroup.visible = false;
+      solanaGroup.visible = false;
+      prismMesh.visible = false;
+
+      // ------------------------------------------
+      // KINETIC SCULPTED GLB CHOREOGRAPHY (ZERO CLIPPING!)
+      // ------------------------------------------
+      if (vaultModel) {
+        // Outer Gimbal: Rotates on Horizontal Axle between Stanchion Bearings
+        if (glbGimbalOuter) {
+          const outerSpin = (currentPhase === 2 ? t * 1.2 : (currentPhase === 3 ? t * 0.35 : Math.sin(t * 0.5) * 0.04));
+          glbGimbalOuter.rotation.x = outerSpin;
+        }
+
+        // Mid Gimbal: Counter-Rotating on Orthogonal Trunnions
+        if (glbGimbalMid) {
+          const midSpeed = (currentPhase === 2 ? 0.045 : (currentPhase === 3 ? 0.012 : 0.002));
+          glbGimbalMid.rotation.y += midSpeed;
+        }
+
+        // Caliper Clamps: Hydraulic jaws open during settlement
+        if (glbCaliperIris) {
+          glbCaliperIris.visible = !isSettled;
+          const irisScale = 1.0 + kineticProgress * 0.45;
+          glbCaliperIris.scale.set(irisScale, irisScale, 1.0);
+        }
+
+        // USDC Proof Bullion Medallion
+        if (glbBullion) {
+          glbBullion.visible = (!isSettled && kineticProgress < 0.90);
+          if (glbBullion.visible) {
+            const bScale = Math.max(0.001, 1.0 - kineticProgress * 0.95);
+            glbBullion.scale.set(bScale, bScale, bScale);
+            glbBullion.position.z = -kineticProgress * 0.6;
+            glbBullion.rotation.y = -0.20 + Math.sin(t * 0.8) * 0.08 + (currentPhase === 2 ? t * 1.5 : 0);
+          }
+        }
+
+        // Solana Sovereign Chrono-Bullion (Horological Hero Pose)
+        if (glbSolana) {
+          glbSolana.visible = (isSettled || kineticProgress > 0.08);
+          if (glbSolana.visible) {
+            const sScale = Math.min(1.20, (isSettled ? 1.20 : kineticProgress * 1.20));
+            glbSolana.scale.set(sScale, sScale, sScale);
+            glbSolana.position.z = -0.2 + kineticProgress * 0.2;
+
+            if (isSettled) {
+              settleRotationTime += 0.016;
+              // Smooth exponential deceleration into locked 3/4 beauty angle (-0.28 rad / ~16 deg)
+              const spinDecay = (Math.PI * 2) * Math.exp(-settleRotationTime * 1.5);
+              const idleFloat = Math.sin(t * 0.7) * 0.05;
+              glbSolana.rotation.y = -0.28 + spinDecay + idleFloat;
+              glbSolana.rotation.x = Math.sin(t * 0.5) * 0.03;
+            } else {
+              glbSolana.rotation.y = t * 1.4;
+              glbSolana.rotation.x = Math.sin(t * 0.8) * 0.06;
+            }
+
+            // Tight Quantum Satellites (Orbit equator of diamond shard, ZERO floor clipping!)
+            glbSatellites.forEach((sat, idx) => {
+              const ang = t * 1.6 + (idx * Math.PI / 2);
+              const rad = 0.48;
+              sat.position.x = Math.cos(ang) * rad;
+              sat.position.z = Math.sin(ang) * rad;
+              sat.position.y = Math.sin(t * 2.2 + idx) * 0.08;
+              sat.rotation.y += 0.03;
+              sat.rotation.x += 0.02;
+            });
+          }
+        }
+      }
+
+      // Grounded Cryogenic Well Micro-Motes (Confined inside the recessed well cavity)
+      const posArr = particles.geometry.attributes.position.array;
+      for (let i = 0; i < particleCount; i++) {
+        posArr[i*3] += pVel[i].x;
+        posArr[i*3+1] += pVel[i].y;
+        posArr[i*3+2] += pVel[i].z;
+
+        if (posArr[i*3+1] > -0.50) {
+          posArr[i*3+1] = -1.15;
+          const r = Math.random() * 1.4;
+          const a = Math.random() * Math.PI * 2;
+          posArr[i*3] = Math.cos(a) * r;
+          posArr[i*3+2] = Math.sin(a) * r;
+        }
+      }
+      particles.geometry.attributes.position.needsUpdate = true;
+
+      // Kinetic Counter-Rotation of Quantum Gyro Rings
+      if (window.solGyroRing1 && window.solGyroRing2) {
+        window.solGyroRing1.rotation.y = t * 1.5;
+        window.solGyroRing1.rotation.z = Math.sin(t * 0.8) * 0.15;
+        window.solGyroRing2.rotation.y = -t * 1.2;
+        window.solGyroRing2.rotation.z = -Math.sin(t * 0.8) * 0.15;
+      }
+
+      // Rotate Satellite Collector Prisms & Float Sprites
+      [satJupiter, satDflow, satOkx].forEach((sat, sIdx) => {
+        sat.prism.rotation.y += 0.025;
+        sat.prism.rotation.z += 0.015;
+        sat.splashMesh.rotation.z += 0.04;
+        sat.sprite.position.y = 0.26 + Math.sin(t * 2.2 + sIdx) * 0.02;
+      });
+
+      // Floor Shockwave Propagation
+      if (shockwaveTime < 2.2) {
+        shockwaveTime += 0.016;
+        const swScale = 1.0 + shockwaveTime * 9.5;
+        shockwaveMesh.scale.set(swScale, 1.0, swScale);
+        shockwaveMat.opacity = Math.max(0.0, (1.0 - shockwaveTime / 1.8) * 0.82);
+      } else {
+        shockwaveMat.opacity = 0.0;
+      }
+
+      // Dynamic Live Core Origin for Laser Conduits
+      const coreWorldPos = new THREE.Vector3();
+      if (glbSolana) {
+        glbSolana.getWorldPosition(coreWorldPos);
+      } else {
+        coreWorldPos.set(0, 0, 0);
+      }
+
+      // Floor Circuit Bus Traces Lighting
+      const traceAlpha = isSettled ? Math.min(0.85, 0.35 + Math.sin(t * 3.5) * 0.18) : 0.12;
+      traceJupiter.mat.opacity = traceAlpha;
+      traceDflow.mat.opacity = traceAlpha;
+      traceOkx.mat.opacity = traceAlpha;
+
+      // Lighting & Laser Conduits State Transitions
+      if (!isSettled) {
+        rimLight.color.setHex(0xf87171);
+        wellLight.color.setHex(0xf87171);
+        wellLight.intensity = (currentPhase === 2 ? 1.2 : 0.8);
+
+        [conduitJupiter, conduitDflow, conduitOkx].forEach(c => {
+          c.beamMat.opacity = 0;
+          c.haloMat.opacity = 0;
+          c.p1.visible = false;
+          c.p2.visible = false;
+        });
+        satJupiter.light.intensity = 0; satDflow.light.intensity = 0; satOkx.light.intensity = 0;
+        satJupiter.splashMat.opacity = 0; satDflow.splashMat.opacity = 0; satOkx.splashMat.opacity = 0;
+      } else {
+        rimLight.color.setHex(0x00ffa3);
+        wellLight.color.setHex(0x14f195);
+        wellLight.intensity = 1.5;
+
+        const laserAlpha = Math.min(1.0, Math.max(0.0, (kineticProgress - 0.15) * 2.5));
+        conduitJupiter.beamMat.opacity = laserAlpha * 0.95;
+        conduitJupiter.haloMat.opacity = laserAlpha * 0.28;
+        conduitDflow.beamMat.opacity = laserAlpha * 0.82;
+        conduitDflow.haloMat.opacity = laserAlpha * 0.22;
+        conduitOkx.beamMat.opacity = laserAlpha * 0.72;
+        conduitOkx.haloMat.opacity = laserAlpha * 0.18;
+
+        satJupiter.light.intensity = laserAlpha * 0.55;
+        satDflow.light.intensity = laserAlpha * 0.40;
+        satOkx.light.intensity = laserAlpha * 0.30;
+
+        satJupiter.splashMat.opacity = laserAlpha * (0.20 + Math.sin(t * 7.0) * 0.15);
+        satDflow.splashMat.opacity = laserAlpha * (0.15 + Math.sin(t * 6.0) * 0.10);
+        satOkx.splashMat.opacity = laserAlpha * (0.12 + Math.sin(t * 5.0) * 0.08);
+
+        [conduitJupiter, conduitDflow, conduitOkx].forEach((c, idx) => {
+          const vDir = c.targetPos.clone().sub(coreWorldPos);
+          const curLen = vDir.length();
+          const mid = coreWorldPos.clone().addScaledVector(vDir, 0.5);
+          c.beam.position.copy(mid);
+          c.beam.lookAt(c.targetPos);
+          c.beam.scale.set(1, 1, curLen);
+
+          c.halo.position.copy(mid);
+          c.halo.lookAt(c.targetPos);
+          c.halo.scale.set(1, 1, curLen);
+
+          if (laserAlpha > 0.10) {
+            c.p1.visible = true; c.p2.visible = true;
+            const speed = 3.2 + idx * 0.6;
+            const prog1 = (t * speed) % 1.0;
+            const prog2 = (t * speed + 0.5) % 1.0;
+            c.p1.position.lerpVectors(coreWorldPos, c.targetPos, prog1);
+            c.p2.position.lerpVectors(coreWorldPos, c.targetPos, prog2);
+            c.p1.lookAt(c.targetPos);
+            c.p2.lookAt(c.targetPos);
+          } else {
+            c.p1.visible = false; c.p2.visible = false;
+          }
+        });
+      }
+
+      if (composer) {
+          composer.render();
+        } else {
+          renderer.render(scene, camera);
+        }
+    }
+    animate();
+
+    window.addEventListener("resize", () => {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+        if (composer) {
+          composer.setSize(window.innerWidth, window.innerHeight);
+        }
+    });
+
+    // === 2. PROCEDURAL 0 KB WEB AUDIO MICRO-HAPTICS (ROUTED TO SPEAKERS & RECORD STREAM) ===
+    let audioCtx = null;
+    let audioStreamDest = null;
+    function getAudioCtx() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        audioStreamDest = audioCtx.createMediaStreamDestination();
+      }
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      return audioCtx;
+    }
+    function playTactileClick() {
+      try {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        const filter = ctx.createBiquadFilter();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(1600, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 0.022);
+        filter.type = 'bandpass';
+        filter.frequency.setValueAtTime(1400, ctx.currentTime);
+        filter.Q.setValueAtTime(3.0, ctx.currentTime);
+        gain.gain.setValueAtTime(0.16, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.022);
+        osc.connect(filter);
+        filter.connect(gain);
+        gain.connect(ctx.destination);
+        if (audioStreamDest) gain.connect(audioStreamDest);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.024);
+      } catch (e) {}
+    }
+    function playSubBassConfirm() {
+      try {
+        const ctx = getAudioCtx();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(140, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(38, ctx.currentTime + 0.28);
+        gain.gain.setValueAtTime(0.38, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.30);
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        if (audioStreamDest) gain.connect(audioStreamDest);
+        osc.start();
+        osc.stop(ctx.currentTime + 0.32);
+      } catch (e) {}
+    }
+
+    // === 3. SCRIPTED SEQUENCE LOOP ===
+    const termStream = document.getElementById("term-stream");
+    const statusCapsule = document.getElementById("status-capsule");
+    const statusDot = document.getElementById("status-dot");
+    const statusLabel = document.getElementById("status-label");
+    const step1 = document.getElementById("step-1");
+    const step2 = document.getElementById("step-2");
+    const step3 = document.getElementById("step-3");
+    const routeJupiter = document.getElementById("route-jupiter");
+    const routeDflow = document.getElementById("route-dflow");
+    const routeOkx = document.getElementById("route-okx");
+    const routeStateTag = document.getElementById("route-state-tag");
+    const narrativePill = document.getElementById("narrative-pill");
+    const narrativeDot = document.getElementById("narrative-dot");
+    const narrativeText = document.getElementById("narrative-text");
+
+    const steps = [
+      { delay: 300, html: '<span style="color:var(--cyan)">❯ agent --role compute --rail hermes</span>' },
+      { delay: 700, html: '<span style="color:var(--muted)">[INIT] Connecting to Hermes router: zero static keys</span>' },
+      { delay: 1200, html: '<span style="color:var(--yellow)">POST https://hermes.swap.io/v1/swap/quote</span>' },
+      { delay: 1600, html: '<span style="color:var(--muted)">Pair: USDC/SOL | Amount: 10000000 | Slippage: 50bps</span>' },
+      { delay: 2100, html: '<span style="color:var(--red)">HTTP 402 Payment Required</span>', phase1: true },
+      { delay: 2500, html: '<span style="color:var(--muted)">├── Asset    : EPjFWdd5Aufq... (USDC)\n├── PayTo    : BPz2u6eoWLervx... (Hermes)\n├── FeePayer : 2wKupLR9q6w... (Gas Free)\n└── Amount   : 4405 atomic ($0.004405 USDC)</span>', step2Active: true, phase2: true },
+      { delay: 3300, html: '<span style="color:var(--yellow)">⚡ AUTONOMOUS SPL SETTLEMENT TRIGGERED</span>' },
+      { delay: 3800, html: '<span style="color:var(--muted)">Signing exact transfer ($0.004405 USDC)...</span>' },
+      { delay: 4600, html: '<span style="color:var(--green)">✓ Tx Broadcast: 5Kj9vX2M8qR7bZ4tW1yP3nL6sD8f...</span>' },
+      { delay: 5100, html: '<span style="color:var(--cyan)">POST https://hermes.swap.io/v1/swap/quote</span>' },
+      { delay: 5400, html: '<span style="color:var(--muted)">Header: X-PAYMENT: eyJ4NDAyVmVyc2lvbiI6MSwic2...</span>' },
+      { delay: 6100, html: '<span style="color:var(--green)">✓ HTTP 200 OK — APERTURE VAULT UNLOCKED</span>' },
+      { delay: 6400, html: '<span style="color:var(--green)">🚀 Liquidity Vector Radiating across Jupiter / DFlow</span>', unlock: true, phase3: true }
+    ];
+
+    let activeTimers = [];
+
+    function triggerAnamorphicFlare() {
+      const flare = document.getElementById("anamorphic-flare");
+      if (flare) {
+        flare.classList.add("active");
+        setTimeout(() => flare.classList.remove("active"), 500);
+      }
+    }
+
+    function updateNarrative(phase) {
+      if (phase === 1) {
+        narrativeDot.style.background = "#f87171";
+        narrativeDot.style.boxShadow = "0 0 8px #f87171";
+        narrativeText.innerHTML = '<span style="color:#f87171;font-weight:700;">PHASE 01</span> · HTTP 402 Challenge — 3D USDC Coin locked at x402 Laser Airlock';
+        narrativePill.style.borderColor = "rgba(248, 113, 113, 0.35)";
+      } else if (phase === 2) {
+        narrativeDot.style.background = "var(--yellow)";
+        narrativeDot.style.boxShadow = "0 0 8px var(--yellow)";
+        narrativeText.innerHTML = '<span style="color:var(--yellow);font-weight:700;">PHASE 02</span> · Micro-Fee Droplet ($0.004405 USDC) arcs to Hermes Receiver — Gas Free';
+        narrativePill.style.borderColor = "rgba(250, 204, 21, 0.35)";
+      } else if (phase === 3) {
+        narrativeDot.style.background = "var(--green)";
+        narrativeDot.style.boxShadow = "0 0 8px var(--green)";
+        narrativeText.innerHTML = '<span style="color:var(--green);font-weight:700;">PHASE 03</span> · 200 OK Settled — Metamorphosis into Radiant Solana Crystal Shard across Jupiter, DFlow & OKX';
+        narrativePill.style.borderColor = "rgba(0, 255, 163, 0.4)";
+      }
+    }
+
+    // Step Scrubbing: Jump to exact phase on click
+    function jumpToPhase(phase) {
+      playTactileClick();
+      activeTimers.forEach(clearTimeout);
+      activeTimers = [];
+
+      termStream.innerHTML = "";
+
+      currentPhase = 1;
+      if (phase === 1) {
+        isSettled = false;
+        step1.className = "step-item active";
+        step2.className = "step-item";
+        step3.className = "step-item";
+
+        statusCapsule.style.background = "rgba(248, 113, 113, 0.12)";
+        statusCapsule.style.borderColor = "rgba(248, 113, 113, 0.3)";
+        statusCapsule.style.color = "var(--red)";
+        statusDot.style.background = "#f87171";
+        statusDot.style.boxShadow = "0 0 8px #f87171";
+        statusLabel.innerText = "HTTP 402 · PAYMENT REQUIRED";
+
+        routeJupiter.className = "route-line";
+        routeDflow.className = "route-line";
+        routeOkx.className = "route-line";
+        routeStateTag.innerText = "LOCKED";
+        routeStateTag.style.color = "var(--muted)";
+
+        updateNarrative(1);
+
+        for (let i = 0; i <= 4; i++) {
+          const div = document.createElement("div");
+          div.className = "log-row";
+          div.innerHTML = steps[i].html;
+          termStream.appendChild(div);
+        }
+      } else if (phase === 2) {
+        currentPhase = 2;
+        isSettled = false;
+        step1.className = "step-item";
+        step2.className = "step-item active";
+        step3.className = "step-item";
+
+        statusCapsule.style.background = "rgba(250, 204, 21, 0.12)";
+        statusCapsule.style.borderColor = "rgba(250, 204, 21, 0.3)";
+        statusCapsule.style.color = "var(--yellow)";
+        statusDot.style.background = "var(--yellow)";
+        statusDot.style.boxShadow = "0 0 8px var(--yellow)";
+        statusLabel.innerText = "SIGNING · EXACT SPL TRANSFER";
+
+        routeJupiter.className = "route-line";
+        routeDflow.className = "route-line";
+        routeOkx.className = "route-line";
+        routeStateTag.innerText = "SETTLING";
+        routeStateTag.style.color = "var(--yellow)";
+
+        updateNarrative(2);
+
+        for (let i = 0; i <= 8; i++) {
+          const div = document.createElement("div");
+          div.className = "log-row";
+          div.innerHTML = steps[i].html;
+          termStream.appendChild(div);
+        }
+      } else if (phase === 3) {
+        currentPhase = 3;
+        triggerAnamorphicFlare();
+        playSubBassConfirm();
+        isSettled = true;
+        shockwaveTime = 0.0;
+        settleRotationTime = 0.0;
+        playSubBassConfirm();
+        step1.className = "step-item";
+        step2.className = "step-item";
+        step3.className = "step-item active";
+
+        statusCapsule.style.background = "rgba(0, 255, 163, 0.12)";
+        statusCapsule.style.borderColor = "rgba(0, 255, 163, 0.35)";
+        statusCapsule.style.color = "var(--green)";
+        statusDot.style.background = "var(--green)";
+        statusDot.style.boxShadow = "0 0 8px var(--green)";
+        statusLabel.innerText = "200 OK · SETTLED ZERO-KEY";
+
+        routeJupiter.className = "route-line unlocked";
+        routeDflow.className = "route-line unlocked";
+        routeOkx.className = "route-line unlocked";
+        routeStateTag.innerText = "ACTIVE";
+        routeStateTag.style.color = "var(--green)";
+
+        updateNarrative(3);
+
+        steps.forEach(s => {
+          const div = document.createElement("div");
+          div.className = "log-row";
+          div.innerHTML = s.html;
+          termStream.appendChild(div);
+        });
+      }
+      termStream.scrollTop = termStream.scrollHeight;
+    }
+
+    step1.addEventListener("click", () => jumpToPhase(1));
+    step2.addEventListener("click", () => jumpToPhase(2));
+    step3.addEventListener("click", () => jumpToPhase(3));
+
+    function runSequence() {
+      activeTimers.forEach(clearTimeout);
+      activeTimers = [];
+
+      termStream.innerHTML = "";
+      isSettled = false;
+
+      // Reset HUD states
+      statusCapsule.style.background = "rgba(248, 113, 113, 0.12)";
+      statusCapsule.style.borderColor = "rgba(248, 113, 113, 0.3)";
+      statusCapsule.style.color = "var(--red)";
+      statusDot.style.background = "#f87171";
+      statusDot.style.boxShadow = "0 0 8px #f87171";
+      statusLabel.innerText = "HTTP 402 · PAYMENT REQUIRED";
+
+      step1.className = "step-item active";
+      step2.className = "step-item";
+      step3.className = "step-item";
+
+      routeJupiter.className = "route-line";
+      routeDflow.className = "route-line";
+      routeOkx.className = "route-line";
+      routeStateTag.innerText = "LOCKED";
+      routeStateTag.style.color = "var(--muted)";
+
+      updateNarrative(1);
+
+      steps.forEach(s => {
+        const tid = setTimeout(() => {
+          const div = document.createElement("div");
+          div.className = "log-row";
+          div.innerHTML = s.html;
+          termStream.appendChild(div);
+          termStream.scrollTop = termStream.scrollHeight;
+
+          if (s.phase1) updateNarrative(1);
+          if (s.phase2) updateNarrative(2);
+
+          if (s.step2Active) {
+            currentPhase = 2;
+            step1.className = "step-item";
+            step2.className = "step-item active";
+            statusCapsule.style.background = "rgba(250, 204, 21, 0.12)";
+            statusCapsule.style.borderColor = "rgba(250, 204, 21, 0.3)";
+            statusCapsule.style.color = "var(--yellow)";
+            statusDot.style.background = "var(--yellow)";
+            statusDot.style.boxShadow = "0 0 8px var(--yellow)";
+            statusLabel.innerText = "SIGNING · EXACT SPL TRANSFER";
+          }
+
+          if (s.unlock) {
+            triggerAnamorphicFlare();
+            currentPhase = 3;
+            playSubBassConfirm();
+            isSettled = true;
+
+            step2.className = "step-item";
+            step3.className = "step-item active";
+            shockwaveTime = 0.0;
+            playSubBassConfirm();
+
+            statusCapsule.style.background = "rgba(0, 255, 163, 0.12)";
+            statusCapsule.style.borderColor = "rgba(0, 255, 163, 0.35)";
+            statusCapsule.style.color = "var(--green)";
+            statusDot.style.background = "var(--green)";
+            statusDot.style.boxShadow = "0 0 8px var(--green)";
+            statusLabel.innerText = "200 OK · SETTLED ZERO-KEY";
+
+            routeJupiter.className = "route-line unlocked";
+            routeDflow.className = "route-line unlocked";
+            routeOkx.className = "route-line unlocked";
+            routeStateTag.innerText = "ACTIVE";
+            routeStateTag.style.color = "var(--green)";
+
+            updateNarrative(3);
+          }
+        }, s.delay);
+        activeTimers.push(tid);
+      });
+    }
+
+    document.getElementById("btn-replay").addEventListener("click", () => {
+      playTactileClick();
+      runSequence();
+    });
+
+    runSequence();
+
+    // === 4. COMPOSITE 60 FPS SCREEN RECORDER WITH HUD TIMER ===
+    let mediaRecorder;
+    let recordedChunks = [];
+    const btnRecord = document.getElementById("btn-record");
+    let recTimer = null;
+    let recSeconds = 0;
+
+    btnRecord.addEventListener("click", async () => {
+      playTactileClick();
+      if (btnRecord.innerText.includes("REC")) {
+        // Early manual stop
+        if (mediaRecorder && mediaRecorder.state !== "inactive") {
+          mediaRecorder.stop();
+        }
+        return;
+      }
+
+      try {
+        getAudioCtx(); // Ensure audio destination initialized
+        let stream;
+        try {
+          stream = await navigator.mediaDevices.getDisplayMedia({
+            video: { frameRate: 60, displaySurface: "browser" },
+            audio: true
+          });
+        } catch (displayErr) {
+          console.warn("DisplayMedia declined or unavailable, falling back to direct canvas.captureStream(60) with Web Audio:", displayErr);
+          const canvasStream = canvas.captureStream(60);
+          const audioTracks = (audioStreamDest && audioStreamDest.stream) ? audioStreamDest.stream.getAudioTracks() : [];
+          stream = new MediaStream([
+            ...canvasStream.getVideoTracks(),
+            ...audioTracks
+          ]);
+        }
+
+        // 3-2-1 Preparation Countdown
+        btnRecord.innerText = "⏳ 3...";
+        await new Promise(r => setTimeout(r, 1000));
+        btnRecord.innerText = "⏳ 2...";
+        await new Promise(r => setTimeout(r, 1000));
+        btnRecord.innerText = "⏳ 1...";
+        await new Promise(r => setTimeout(r, 1000));
+
+        runSequence();
+        mediaRecorder = new MediaRecorder(stream, { mimeType: "video/webm;codecs=vp9", videoBitsPerSecond: 12000000 });
+        recordedChunks = [];
+        recSeconds = 0;
+
+        recTimer = setInterval(() => {
+          recSeconds++;
+          const sec = String(recSeconds).padStart(2, "0");
+          btnRecord.innerText = `● REC 00:${sec} [STOP & SAVE]`;
+          btnRecord.style.background = "#dc2626";
+        }, 1000);
+        btnRecord.innerText = "● REC 00:00 [STOP & SAVE]";
+        btnRecord.style.background = "#dc2626";
+
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) recordedChunks.push(e.data);
+        };
+
+        mediaRecorder.onstop = () => {
+          clearInterval(recTimer);
+          const tracks = stream.getTracks();
+          tracks.forEach(track => track.stop());
+
+          const blob = new Blob(recordedChunks, { type: "video/webm" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "swap_io_x402_kinetic_vault_60fps.webm";
+          a.click();
+          btnRecord.innerText = "● Record 60 FPS Reel";
+          btnRecord.style.background = "";
+        };
+
+        mediaRecorder.start();
+        setTimeout(() => {
+          if (mediaRecorder.state !== "inactive") mediaRecorder.stop();
+        }, 16000);
+      } catch (err) {
+        console.error("Recording error:", err);
+        btnRecord.innerText = "● Record 60 FPS Reel";
+        btnRecord.style.background = "";
+      }
+    });
+
+  </script>
+</body>
+</html>
