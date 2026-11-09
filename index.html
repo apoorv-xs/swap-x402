@@ -1262,20 +1262,8 @@
           solanaBullionGroup.add(bR);
         });
 
-        // 5. Dual Precision Aerospace Gyro Rings
-        const gyro1Geom = new THREE.TorusGeometry(1.08, 0.008, 16, 80);
-        const gyro1Mat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.2, metalness: 0.95 });
-        window.solGyroRing1 = new THREE.Mesh(gyro1Geom, gyro1Mat);
-        window.solGyroRing1.rotation.x = Math.PI / 5;
-        solanaBullionGroup.add(window.solGyroRing1);
-
-        const gyro2Geom = new THREE.TorusGeometry(1.22, 0.008, 16, 80);
-        const gyro2Mat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.2, metalness: 0.95 });
-        window.solGyroRing2 = new THREE.Mesh(gyro2Geom, gyro2Mat);
-        window.solGyroRing2.rotation.x = -Math.PI / 5;
-        solanaBullionGroup.add(window.solGyroRing2);
+        // 5. Dual Precision Aerospace Gyro Rings removed to eliminate mesh clipping through outer bezel and gimbals
       }
-      
       console.log('Cinema-Grade Swap Airlock Vault GLB Loaded Successfully!');
     }
 
@@ -1598,9 +1586,9 @@
     }
 
     // Staggered Relay Pedestal Coordinates (Open front-right sweeping arc, 100% visible, zero UI occlusion)
-    const satJupiterPos = new THREE.Vector3(0.55, -0.80, 1.45);
-    const satDflowPos   = new THREE.Vector3(0.95, -0.80, 1.25);
-    const satOkxPos     = new THREE.Vector3(1.30, -0.80, 0.95);
+    const satJupiterPos = new THREE.Vector3(0.60, -0.72, 1.10);
+    const satDflowPos   = new THREE.Vector3(0.95, -0.72, 0.88);
+    const satOkxPos     = new THREE.Vector3(1.28, -0.72, 0.65);
 
     const satJupiter = createSatelliteNode(satJupiterPos, 0xf59e0b, "JUPITER // 99.4%", 0.32);
     const satDflow   = createSatelliteNode(satDflowPos,   0xfbbf24, "DFLOW // 0.4%",    0.38);
@@ -1841,24 +1829,32 @@
           glbCaliperIris.scale.set(irisScale, irisScale, 1.0);
         }
 
-        // USDC Proof Bullion Medallion
+        // ------------------------------------------
+        // MUTUALLY EXCLUSIVE MEDALLIONS (ZERO Z-FIGHTING / ZERO CLIPPING!)
+        // ------------------------------------------
+        // Phase 1 (Challenge) & Phase 2 (Settlement): USDC Bullion HERO
+        // Phase 3 (Settled): Solana Sovereign Chrono-Bullion HERO
         if (glbBullion) {
-          glbBullion.visible = (!isSettled && kineticProgress < 0.90);
+          glbBullion.visible = (currentPhase === 1 || currentPhase === 2);
           if (glbBullion.visible) {
-            const bScale = Math.max(0.001, 1.0 - kineticProgress * 0.95);
-            glbBullion.scale.set(bScale, bScale, bScale);
-            glbBullion.position.z = -kineticProgress * 0.6;
-            glbBullion.rotation.y = -0.20 + Math.sin(t * 0.8) * 0.08 + (currentPhase === 2 ? t * 1.5 : 0);
+            glbBullion.position.set(0, 0, 0);
+            glbBullion.scale.set(1.0, 1.0, 1.0);
+            if (currentPhase === 1) {
+              // Idle breathing angle
+              glbBullion.rotation.y = -0.20 + Math.sin(t * 0.8) * 0.08;
+            } else if (currentPhase === 2) {
+              // Active settlement cryptographic processing spin
+              glbBullion.rotation.y = t * 1.5;
+            }
           }
         }
 
-        // Solana Sovereign Chrono-Bullion (Horological Hero Pose)
         if (glbSolana) {
-          glbSolana.visible = (isSettled || kineticProgress > 0.08);
+          glbSolana.visible = (currentPhase === 3);
           if (glbSolana.visible) {
-            const sScale = Math.min(1.20, (isSettled ? 1.20 : kineticProgress * 1.20));
+            const sScale = 1.20;
             glbSolana.scale.set(sScale, sScale, sScale);
-            glbSolana.position.z = -0.2 + kineticProgress * 0.2;
+            glbSolana.position.set(0, 0, 0);
 
             if (isSettled) {
               settleRotationTime += 0.016;
@@ -1871,17 +1867,6 @@
               glbSolana.rotation.y = t * 1.4;
               glbSolana.rotation.x = Math.sin(t * 0.8) * 0.06;
             }
-
-            // Tight Quantum Satellites (Orbit equator of diamond shard, ZERO floor clipping!)
-            glbSatellites.forEach((sat, idx) => {
-              const ang = t * 1.6 + (idx * Math.PI / 2);
-              const rad = 0.48;
-              sat.position.x = Math.cos(ang) * rad;
-              sat.position.z = Math.sin(ang) * rad;
-              sat.position.y = Math.sin(t * 2.2 + idx) * 0.08;
-              sat.rotation.y += 0.03;
-              sat.rotation.x += 0.02;
-            });
           }
         }
       }
@@ -1911,13 +1896,30 @@
         window.solGyroRing2.rotation.z = -Math.sin(t * 0.8) * 0.15;
       }
 
-      // Rotate Satellite Collector Prisms & Float Sprites
-      [satJupiter, satDflow, satOkx].forEach((sat, sIdx) => {
-        sat.prism.rotation.y += 0.025;
-        sat.prism.rotation.z += 0.015;
-        sat.splashMesh.rotation.z += 0.04;
-        sat.sprite.position.y = 0.26 + Math.sin(t * 2.2 + sIdx) * 0.02;
+      // Rotate Satellite Collector Prisms & Float Sprites (ONLY IN PHASE 3 // MULTI-HOP ROUTED)
+      const isRouting = (currentPhase === 3);
+      if (satJupiter && satJupiter.group) satJupiter.group.visible = isRouting;
+      if (satDflow && satDflow.group)     satDflow.group.visible = isRouting;
+      if (satOkx && satOkx.group)         satOkx.group.visible = isRouting;
+      if (floorTraceGroup)                floorTraceGroup.visible = isRouting;
+      [conduitJupiter, conduitDflow, conduitOkx].forEach(c => {
+        if (c) {
+          if (c.beam) c.beam.visible = isRouting;
+          if (c.halo) c.halo.visible = isRouting;
+          if (c.p1) c.p1.visible = isRouting;
+          if (c.p2) c.p2.visible = isRouting;
+        }
       });
+
+      if (isRouting) {
+        [satJupiter, satDflow, satOkx].forEach((sat, sIdx) => {
+          if (!sat || !sat.prism) return;
+          sat.prism.rotation.y += 0.025;
+          sat.prism.rotation.z += 0.015;
+          if (sat.splashMesh) sat.splashMesh.rotation.z += 0.04;
+          if (sat.sprite) sat.sprite.position.y = 0.26 + Math.sin(t * 2.2 + sIdx) * 0.02;
+        });
+      }
 
       // Floor Shockwave Propagation
       if (shockwaveTime < 2.2) {
