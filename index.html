@@ -499,19 +499,259 @@
       transform: translateY(-50%) scaleX(1.4);
     }
   </style>
-  <script src="three.min.js"></script>
-  <script>if (typeof THREE === 'undefined') { document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\\/script>'); }</script>
+  <script src="three.min.js">
+    // --- Formal Sovereign Three.js Scene & GPU Disposal Lifecycle ---
+    window.disposeVaultScene = function() {
+      if (typeof scene !== 'undefined' && scene) {
+        scene.traverse(function(obj) {
+          if (obj.geometry) {
+            obj.geometry.dispose();
+          }
+          if (obj.material) {
+            if (Array.isArray(obj.material)) {
+              obj.material.forEach(function(m) { m.dispose(); });
+            } else {
+              obj.material.dispose();
+            }
+          }
+        });
+      }
+      if (typeof renderer !== 'undefined' && renderer) {
+        renderer.dispose();
+        if (renderer.forceContextLoss) renderer.forceContextLoss();
+      }
+    };
+    window.addEventListener('beforeunload', window.disposeVaultScene);
+
+  </script>
+  <script>if (typeof THREE === 'undefined') { document.write('<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"><\\/script>'); }
+    // --- Formal Sovereign Three.js Scene & GPU Disposal Lifecycle ---
+    window.disposeVaultScene = function() {
+      if (typeof scene !== 'undefined' && scene) {
+        scene.traverse(function(obj) {
+          if (obj.geometry) {
+            obj.geometry.dispose();
+          }
+          if (obj.material) {
+            if (Array.isArray(obj.material)) {
+              obj.material.forEach(function(m) { m.dispose(); });
+            } else {
+              obj.material.dispose();
+            }
+          }
+        });
+      }
+      if (typeof renderer !== 'undefined' && renderer) {
+        renderer.dispose();
+        if (renderer.forceContextLoss) renderer.forceContextLoss();
+      }
+    };
+    window.addEventListener('beforeunload', window.disposeVaultScene);
+
+  </script>
   <!-- Three.js Postprocessing & UnrealBloom -->
     <!-- Three.js Postprocessing & UnrealBloom (Local Offline - Correct Dependency Order) -->
-    <script src="EffectComposer.js"></script>
-    <script src="RenderPass.js"></script>
-    <script src="CopyShader.js"></script>
-    <script src="ShaderPass.js"></script>
-    <script src="LuminosityHighPassShader.js"></script>
-    <script src="UnrealBloomPass.js"></script>
+    <script src="EffectComposer.js">
+    // --- Formal Sovereign Three.js Scene & GPU Disposal Lifecycle ---
+    window.disposeVaultScene = function() {
+      if (typeof scene !== 'undefined' && scene) {
+        scene.traverse(function(obj) {
+          if (obj.geometry) {
+            obj.geometry.dispose();
+          }
+          if (obj.material) {
+            if (Array.isArray(obj.material)) {
+              obj.material.forEach(function(m) { m.dispose(); });
+            } else {
+              obj.material.dispose();
+            }
+          }
+        });
+      }
+      if (typeof renderer !== 'undefined' && renderer) {
+        renderer.dispose();
+        if (renderer.forceContextLoss) renderer.forceContextLoss();
+      }
+    };
+    window.addEventListener('beforeunload', window.disposeVaultScene);
+
+  </script>
+    <script src="RenderPass.js">
+    // --- Formal Sovereign Three.js Scene & GPU Disposal Lifecycle ---
+    window.disposeVaultScene = function() {
+      if (typeof scene !== 'undefined' && scene) {
+        scene.traverse(function(obj) {
+          if (obj.geometry) {
+            obj.geometry.dispose();
+          }
+          if (obj.material) {
+            if (Array.isArray(obj.material)) {
+              obj.material.forEach(function(m) { m.dispose(); });
+            } else {
+              obj.material.dispose();
+            }
+          }
+        });
+      }
+      if (typeof renderer !== 'undefined' && renderer) {
+        renderer.dispose();
+        if (renderer.forceContextLoss) renderer.forceContextLoss();
+      }
+    };
+    window.addEventListener('beforeunload', window.disposeVaultScene);
+
+  </script>
+    <script src="CopyShader.js">
+    // --- Formal Sovereign Three.js Scene & GPU Disposal Lifecycle ---
+    window.disposeVaultScene = function() {
+      if (typeof scene !== 'undefined' && scene) {
+        scene.traverse(function(obj) {
+          if (obj.geometry) {
+            obj.geometry.dispose();
+          }
+          if (obj.material) {
+            if (Array.isArray(obj.material)) {
+              obj.material.forEach(function(m) { m.dispose(); });
+            } else {
+              obj.material.dispose();
+            }
+          }
+        });
+      }
+      if (typeof renderer !== 'undefined' && renderer) {
+        renderer.dispose();
+        if (renderer.forceContextLoss) renderer.forceContextLoss();
+      }
+    };
+    window.addEventListener('beforeunload', window.disposeVaultScene);
+
+  </script>
+    <script src="ShaderPass.js">
+    // --- Formal Sovereign Three.js Scene & GPU Disposal Lifecycle ---
+    window.disposeVaultScene = function() {
+      if (typeof scene !== 'undefined' && scene) {
+        scene.traverse(function(obj) {
+          if (obj.geometry) {
+            obj.geometry.dispose();
+          }
+          if (obj.material) {
+            if (Array.isArray(obj.material)) {
+              obj.material.forEach(function(m) { m.dispose(); });
+            } else {
+              obj.material.dispose();
+            }
+          }
+        });
+      }
+      if (typeof renderer !== 'undefined' && renderer) {
+        renderer.dispose();
+        if (renderer.forceContextLoss) renderer.forceContextLoss();
+      }
+    };
+    window.addEventListener('beforeunload', window.disposeVaultScene);
+
+  </script>
+    <script src="LuminosityHighPassShader.js">
+    // --- Formal Sovereign Three.js Scene & GPU Disposal Lifecycle ---
+    window.disposeVaultScene = function() {
+      if (typeof scene !== 'undefined' && scene) {
+        scene.traverse(function(obj) {
+          if (obj.geometry) {
+            obj.geometry.dispose();
+          }
+          if (obj.material) {
+            if (Array.isArray(obj.material)) {
+              obj.material.forEach(function(m) { m.dispose(); });
+            } else {
+              obj.material.dispose();
+            }
+          }
+        });
+      }
+      if (typeof renderer !== 'undefined' && renderer) {
+        renderer.dispose();
+        if (renderer.forceContextLoss) renderer.forceContextLoss();
+      }
+    };
+    window.addEventListener('beforeunload', window.disposeVaultScene);
+
+  </script>
+    <script src="UnrealBloomPass.js">
+    // --- Formal Sovereign Three.js Scene & GPU Disposal Lifecycle ---
+    window.disposeVaultScene = function() {
+      if (typeof scene !== 'undefined' && scene) {
+        scene.traverse(function(obj) {
+          if (obj.geometry) {
+            obj.geometry.dispose();
+          }
+          if (obj.material) {
+            if (Array.isArray(obj.material)) {
+              obj.material.forEach(function(m) { m.dispose(); });
+            } else {
+              obj.material.dispose();
+            }
+          }
+        });
+      }
+      if (typeof renderer !== 'undefined' && renderer) {
+        renderer.dispose();
+        if (renderer.forceContextLoss) renderer.forceContextLoss();
+      }
+    };
+    window.addEventListener('beforeunload', window.disposeVaultScene);
+
+  </script>
   <!-- Three.js GLTF Loader & Offline Model Data -->
-  <script src="GLTFLoader.js"></script>
-  <script src="swap_vault_data.js"></script>
+  <script src="GLTFLoader.js">
+    // --- Formal Sovereign Three.js Scene & GPU Disposal Lifecycle ---
+    window.disposeVaultScene = function() {
+      if (typeof scene !== 'undefined' && scene) {
+        scene.traverse(function(obj) {
+          if (obj.geometry) {
+            obj.geometry.dispose();
+          }
+          if (obj.material) {
+            if (Array.isArray(obj.material)) {
+              obj.material.forEach(function(m) { m.dispose(); });
+            } else {
+              obj.material.dispose();
+            }
+          }
+        });
+      }
+      if (typeof renderer !== 'undefined' && renderer) {
+        renderer.dispose();
+        if (renderer.forceContextLoss) renderer.forceContextLoss();
+      }
+    };
+    window.addEventListener('beforeunload', window.disposeVaultScene);
+
+  </script>
+  <script src="swap_vault_data.js">
+    // --- Formal Sovereign Three.js Scene & GPU Disposal Lifecycle ---
+    window.disposeVaultScene = function() {
+      if (typeof scene !== 'undefined' && scene) {
+        scene.traverse(function(obj) {
+          if (obj.geometry) {
+            obj.geometry.dispose();
+          }
+          if (obj.material) {
+            if (Array.isArray(obj.material)) {
+              obj.material.forEach(function(m) { m.dispose(); });
+            } else {
+              obj.material.dispose();
+            }
+          }
+        });
+      }
+      if (typeof renderer !== 'undefined' && renderer) {
+        renderer.dispose();
+        if (renderer.forceContextLoss) renderer.forceContextLoss();
+      }
+    };
+    window.addEventListener('beforeunload', window.disposeVaultScene);
+
+  </script>
 </head>
 <body>
   <div id="anamorphic-flare"></div>
@@ -2106,7 +2346,7 @@
       { delay: 35000, html: '<span style="color:var(--amber)">✓ Tx Broadcast: 5Kj9vX2M8qR7bZ4tW1yP3nL6sD8f...</span>' },
       { delay: 42000, html: '<span style="color:var(--amber)">POST https://hermes.swap.io/v1/swap/quote [Header: X-PAYMENT]</span>' },
       { delay: 48000, html: '<span style="color:var(--amber-glow)">✓ HTTP 200 OK — APERTURE VAULT UNLOCKED</span>', unlock: true, phase3: true },
-      { delay: 54000, html: '<span style="color:var(--amber)">🚀 Liquidity Vectors Radiating: Jupiter 99.4% · DFlow 0.4% · OKX 0.2%</span>' },
+      { delay: 54000, html: '<span style="color:var(--amber)">◈ Liquidity Vectors Radiating: Jupiter 99.4% · DFlow 0.4% · OKX 0.2%</span>' },
       { delay: 62000, html: '<span style="color:var(--muted)">[FINALITY] Machine-to-machine financial handshake settled in 60 FPS</span>' }
     ];
 
@@ -2418,6 +2658,30 @@
         btnRecord.style.background = "";
       }
     });
+
+  
+    // --- Formal Sovereign Three.js Scene & GPU Disposal Lifecycle ---
+    window.disposeVaultScene = function() {
+      if (typeof scene !== 'undefined' && scene) {
+        scene.traverse(function(obj) {
+          if (obj.geometry) {
+            obj.geometry.dispose();
+          }
+          if (obj.material) {
+            if (Array.isArray(obj.material)) {
+              obj.material.forEach(function(m) { m.dispose(); });
+            } else {
+              obj.material.dispose();
+            }
+          }
+        });
+      }
+      if (typeof renderer !== 'undefined' && renderer) {
+        renderer.dispose();
+        if (renderer.forceContextLoss) renderer.forceContextLoss();
+      }
+    };
+    window.addEventListener('beforeunload', window.disposeVaultScene);
 
   </script>
 </body>
