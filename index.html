@@ -729,32 +729,31 @@
     shadowPlane.position.y = -1.45;
     scene.add(shadowPlane);
 
-    // Studio Softbox Downward Flood Bank (Casts soft specular highlights on chassis chamfers)
-    const softboxLight = new THREE.SpotLight(0xffffff, 2.2, 16, Math.PI / 3, 0.6, 1.2);
-    softboxLight.position.set(2, 6, 4);
+    // =========================================================================
+    // LUXURY STUDIO SOFTBOX & GRAZING SOLAR AMBER RIM LIGHTING (AWWWARDS TIER)
+    // =========================================================================
+    // Key Softbox Flood (Wide penumbra 0.85 eliminates harsh specular hotspots)
+    const softboxLight = new THREE.SpotLight(0xfff8ee, 2.8, 22.0, Math.PI / 3.2, 0.85, 1.4);
+    softboxLight.position.set(1.5, 7.0, 4.2);
     scene.add(softboxLight);
 
-    // Key Light
-    const keyLight = new THREE.DirectionalLight(0xffffff, 1.4);
-    keyLight.position.set(-3, 6, 5);
+    // Ambient Studio Soft Fill
+    const keyLight = new THREE.DirectionalLight(0xf8fafc, 1.1);
+    keyLight.position.set(-3.5, 5.0, 4.5);
     scene.add(keyLight);
 
-    // Subtle Rim Lights focused on coin / gimbal silhouettes
-    // Rim Light (Positioned below/behind so it rims the floating rings without touching the table top)
-    const rimLight = new THREE.DirectionalLight(0xfff8ee, 0.85);
-    rimLight.position.set(3, -0.8, -3);
+    // Warm Grazing Solar Amber Rim (#f59e0b, sharp edge silhouette)
+    const rimLight = new THREE.DirectionalLight(0xf59e0b, 2.4);
+    rimLight.position.set(3.8, 1.2, -4.5);
     scene.add(rimLight);
 
-    const solanaPurpleRim = new THREE.DirectionalLight(0xf59e0b, 1.4);
-    solanaPurpleRim.position.set(-4, -1, -2);
-    scene.add(solanaPurpleRim);
-
-    const fillLight = new THREE.DirectionalLight(0x0a1128, 0.6);
-    fillLight.position.set(0, -3, 2);
+    // Deep Obsidian / Slate Fill (Fills shadows with rich horological depth)
+    const fillLight = new THREE.DirectionalLight(0x1e293b, 0.95);
+    fillLight.position.set(-4.0, -1.5, 2.0);
     scene.add(fillLight);
 
-    // Interior Well Glow (Upward theatrical illumination from inside the recessed escrow trench)
-    const wellLight = new THREE.PointLight(0xd97706, 1.2, 4.0, 2.0);
+    // Recessed Escrow Well Glow
+    const wellLight = new THREE.PointLight(0xd97706, 1.5, 4.5, 2.0);
     wellLight.position.set(0, -0.40, 0);
     scene.add(wellLight);
 
@@ -764,7 +763,7 @@
       if (typeof THREE.EffectComposer !== "undefined" && typeof THREE.UnrealBloomPass !== "undefined") {
         composer = new THREE.EffectComposer(renderer);
         composer.addPass(new THREE.RenderPass(scene, camera));
-        const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.75, 0.35, 0.82);
+        const bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.40, 0.36, 0.86);
         composer.addPass(bloomPass);
       }
     } catch (e) {
@@ -948,6 +947,189 @@
       return bytes.buffer;
     }
 
+        // =========================================================================
+    // AWWWARDS-GRADE LUXURY PBR MATERIAL PALETTE (ZERO MIRROR-CHROME SMUDGE)
+    // =========================================================================
+    const PBR_PALETTE = {
+      satinTitanium: new THREE.MeshStandardMaterial({
+        color: 0x182030,
+        metalness: 0.92,
+        roughness: 0.38,
+        envMap: scene.environment,
+        envMapIntensity: 1.6
+      }),
+      darkObsidian: new THREE.MeshStandardMaterial({
+        color: 0x06080d,
+        metalness: 0.88,
+        roughness: 0.45,
+        envMap: scene.environment,
+        envMapIntensity: 1.1
+      }),
+      brushedAmber: new THREE.MeshStandardMaterial({
+        color: 0xf59e0b,
+        metalness: 0.94,
+        roughness: 0.30,
+        emissive: 0x78350f,
+        emissiveIntensity: 0.22,
+        envMap: scene.environment,
+        envMapIntensity: 2.2
+      }),
+      opticalSapphire: new THREE.MeshPhysicalMaterial({
+        color: 0x03060e,
+        transmission: 0.96,
+        ior: 1.77,
+        roughness: 0.04,
+        metalness: 0.10,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.02,
+        envMap: scene.environment,
+        envMapIntensity: 2.8
+      }),
+      laserAmberGlow: new THREE.MeshBasicMaterial({
+        color: 0xf59e0b,
+        transparent: true,
+        opacity: 0.90
+      })
+    };
+
+    // =========================================================================
+    // 1. SILKY 256-SEGMENT PROCEDURAL GIMBAL RINGS (ZERO VISIBLE POLYGON EDGES)
+    // =========================================================================
+    function createLuxuryGimbalRing(majorR, minorR, hasAmberTrim = false) {
+      const group = new THREE.Group();
+
+      // Primary Torus Body: 256 radial segments x 64 tube segments (Flawless curve)
+      const mainGeom = new THREE.TorusGeometry(majorR, minorR, 64, 256);
+      mainGeom.computeVertexNormals();
+      const mainMesh = new THREE.Mesh(mainGeom, PBR_PALETTE.satinTitanium);
+      group.add(mainMesh);
+
+      // CNC Beveled Chamfer Inner Flange (32 x 256)
+      const flangeGeom = new THREE.TorusGeometry(majorR - minorR * 0.72, minorR * 0.22, 32, 256);
+      flangeGeom.computeVertexNormals();
+      const flangeMesh = new THREE.Mesh(flangeGeom, hasAmberTrim ? PBR_PALETTE.brushedAmber : PBR_PALETTE.satinTitanium);
+      group.add(flangeMesh);
+
+      // Precision Radial Calibration Reticle Tick Marks
+      if (hasAmberTrim) {
+        const tickGeom = new THREE.BufferGeometry();
+        const tickPts = [];
+        const count = 128;
+        for (let i = 0; i < count; i++) {
+          const a = (i / count) * Math.PI * 2;
+          const r1 = majorR + minorR * 0.92;
+          const r2 = r1 + (i % 8 === 0 ? 0.040 : 0.018);
+          tickPts.push(new THREE.Vector3(Math.cos(a) * r1, Math.sin(a) * r1, 0));
+          tickPts.push(new THREE.Vector3(Math.cos(a) * r2, Math.sin(a) * r2, 0));
+        }
+        tickGeom.setFromPoints(tickPts);
+        const tickLines = new THREE.LineSegments(tickGeom, new THREE.LineBasicMaterial({
+          color: 0xf59e0b,
+          transparent: true,
+          opacity: 0.40
+        }));
+        group.add(tickLines);
+      }
+
+      return group;
+    }
+
+    // High-Precision Procedural Gimbal Rings mounted to Scene
+    const silkyOuterGimbal = createLuxuryGimbalRing(1.60, 0.058, true);
+    const silkyMidGimbal = createLuxuryGimbalRing(1.35, 0.046, false);
+    silkyMidGimbal.rotation.x = Math.PI / 8;
+    scene.add(silkyOuterGimbal);
+    scene.add(silkyMidGimbal);
+
+    // =========================================================================
+    // 2. SCULPTED ARCHITECTURAL TRUNNION CRADLE STANCHIONS (AEROSPACE WISHBONE)
+    // =========================================================================
+    function createArchitecturalTrunnionCradle(px, sign) {
+      const stanchionGroup = new THREE.Group();
+      stanchionGroup.position.set(px, 0, 0);
+
+      // 1. Tapered Streamlined A-Frame Column (Swept organic profile, 64 segments)
+      const curvePoints = [];
+      curvePoints.push(new THREE.Vector2(0.24, -2.15)); // Flanged wide base
+      curvePoints.push(new THREE.Vector2(0.20, -1.80));
+      curvePoints.push(new THREE.Vector2(0.13, -1.10)); // Slender aero waist
+      curvePoints.push(new THREE.Vector2(0.15, -0.40));
+      curvePoints.push(new THREE.Vector2(0.21, -0.05)); // Pillow block flare
+      const latheGeom = new THREE.LatheGeometry(curvePoints, 64);
+      latheGeom.computeVertexNormals();
+      const columnMesh = new THREE.Mesh(latheGeom, PBR_PALETTE.satinTitanium);
+      columnMesh.scale.set(sign * 0.85, 1.0, 1.35); // Elliptical aero cross-section
+      stanchionGroup.add(columnMesh);
+
+      // 2. Heavy Trunnion Bearing Housing (Z = 0.0)
+      const bearingGeom = new THREE.CylinderGeometry(0.20, 0.20, 0.26, 64);
+      bearingGeom.rotateZ(Math.PI / 2);
+      bearingGeom.computeVertexNormals();
+      const bearingMesh = new THREE.Mesh(bearingGeom, PBR_PALETTE.satinTitanium);
+      stanchionGroup.add(bearingMesh);
+
+      // 3. Knurled Amber Bronze Bushing Collar (128 segs)
+      const bushingGeom = new THREE.TorusGeometry(0.20, 0.022, 32, 128);
+      bushingGeom.rotateY(Math.PI / 2);
+      bushingGeom.computeVertexNormals();
+      const bushingMesh = new THREE.Mesh(bushingGeom, PBR_PALETTE.brushedAmber);
+      stanchionGroup.add(bushingMesh);
+
+      // 4. Precision Hex-Socket End Cap Fastener
+      const capGeom = new THREE.CylinderGeometry(0.12, 0.12, 0.06, 64);
+      capGeom.rotateZ(Math.PI / 2);
+      capGeom.computeVertexNormals();
+      const capMesh = new THREE.Mesh(capGeom, PBR_PALETTE.brushedAmber);
+      capMesh.position.x = sign * 0.15;
+      stanchionGroup.add(capMesh);
+
+      // Horizontal Precision Ground Pivot Axle Pin (Spans from bearing to outer gimbal ring)
+      const axleGeom = new THREE.CylinderGeometry(0.045, 0.045, 0.45, 32);
+      axleGeom.rotateZ(Math.PI / 2);
+      axleGeom.computeVertexNormals();
+      const axleMesh = new THREE.Mesh(axleGeom, PBR_PALETTE.satinTitanium);
+      axleMesh.position.x = -sign * 0.225;
+      stanchionGroup.add(axleMesh);
+
+      // 5. Ground Anchorage Foot Flange with 4 Micro-Bolts
+      const footGeom = new THREE.CylinderGeometry(0.32, 0.36, 0.10, 64);
+      footGeom.computeVertexNormals();
+      const footMesh = new THREE.Mesh(footGeom, PBR_PALETTE.satinTitanium);
+      footMesh.position.y = -2.15;
+      stanchionGroup.add(footMesh);
+
+      for (let b = 0; b < 4; b++) {
+        const bAngle = (b / 4) * Math.PI * 2 + Math.PI / 4;
+        const boltGeom = new THREE.CylinderGeometry(0.020, 0.020, 0.04, 24);
+        const boltMesh = new THREE.Mesh(boltGeom, PBR_PALETTE.brushedAmber);
+        boltMesh.position.set(Math.cos(bAngle) * 0.26, -2.09, Math.sin(bAngle) * 0.26);
+        stanchionGroup.add(boltMesh);
+      }
+
+      return stanchionGroup;
+    }
+
+    const leftTrunnion = createArchitecturalTrunnionCradle(-2.05, -1);
+    const rightTrunnion = createArchitecturalTrunnionCradle(2.05, 1);
+    scene.add(leftTrunnion);
+    scene.add(rightTrunnion);
+
+    // =========================================================================
+    // 3. PRECISION DOCKING TURNTABLE RIM (128-SEG BEVEL & 256-SEG BUS RING)
+    // =========================================================================
+    const turntableRimGeom = new THREE.CylinderGeometry(2.18, 2.24, 0.12, 128);
+    turntableRimGeom.computeVertexNormals();
+    const turntableRimMesh = new THREE.Mesh(turntableRimGeom, PBR_PALETTE.darkObsidian);
+    turntableRimMesh.position.y = -2.20;
+    scene.add(turntableRimMesh);
+
+    const turntableAmberBezel = new THREE.TorusGeometry(2.18, 0.022, 32, 256);
+    turntableAmberBezel.rotateX(Math.PI / 2);
+    turntableAmberBezel.computeVertexNormals();
+    const turntableAmberMesh = new THREE.Mesh(turntableAmberBezel, PBR_PALETTE.brushedAmber);
+    turntableAmberMesh.position.y = -2.14;
+    scene.add(turntableAmberMesh);
+
     const gltfLoader = new THREE.GLTFLoader();
 
     function onModelLoaded(gltf) {
@@ -971,12 +1153,15 @@
         if (child.name === 'Gimbal_Ring_Mid') glbGimbalMid = child;
         if (child.name === 'Caliper_Iris_Root') glbCaliperIris = child;
 
-        // Hide all Blender raw geometry defects & duplicate objects
+        // Hide all Blender raw low-poly geometry defects & replace with 256-seg procedural equivalents
         const hideNames = [
           'Chassis_Main_Slab', 'Chassis_Perimeter_Rail',
           'Chassis_Trunnion_Flute_0', 'Chassis_Trunnion_Flute_1',
+          'Chassis_Trunnion_Column_0', 'Chassis_Trunnion_Column_1',
+          'Chassis_Trunnion_Bearing_0', 'Chassis_Trunnion_Bearing_1',
           'Chassis_Trunnion_Axle_0', 'Chassis_Trunnion_Axle_1',
           'Chassis_Trunnion_Nut_0', 'Chassis_Trunnion_Nut_1',
+          'Gimbal_Ring_Outer', 'Gimbal_Ring_Mid', 'Chassis_Luminous_Bus_Ring',
           'Gimbal_Laser_Waveguide',
           'USDC_Coin_Dial',
           'Solana_Crystal_Shard', 'Solana_Laser_Filament'
@@ -986,8 +1171,12 @@
                             child.name.startsWith('Caliper_') || 
                             child.name.startsWith('USDC_Symbol_') || 
                             child.name.startsWith('Solana_Satellite_') || 
+                            child.name.startsWith('Chassis_Trunnion_') ||
                             child.name.startsWith('Gimbal_Lug_')))) {
           child.visible = false;
+        }
+        if (child.isMesh && child.geometry) {
+          child.geometry.computeVertexNormals();
         }
 
         // Machined Dark Obsidian Well & Circular Chamber
@@ -1511,52 +1700,46 @@
       const g = new THREE.Group();
       g.position.copy(pos);
 
-      // Heavy Stepped Palladium Riser Collar
-      const riserGeom = new THREE.CylinderGeometry(0.14, 0.17, 0.06, 6);
+      // 1. 128-segment Stepped Bead-Blasted Titanium Riser Pedestal
+      const riserGeom = new THREE.CylinderGeometry(0.16, 0.20, 0.08, 128);
       riserGeom.rotateX(Math.PI / 2);
-      const riserMat = new THREE.MeshStandardMaterial({
-        color: 0x111625,
-        roughness: 0.18,
-        metalness: 0.94,
-        envMap: scene.environment,
-        envMapIntensity: 2.0
-      });
-      const chip = new THREE.Mesh(riserGeom, riserMat);
+      riserGeom.computeVertexNormals();
+      const chip = new THREE.Mesh(riserGeom, PBR_PALETTE.satinTitanium);
       g.add(chip);
 
-      // Neon Collector Ring
-      const ringGeom = new THREE.RingGeometry(0.10, 0.14, 6);
-      const ringMat = new THREE.MeshBasicMaterial({ color: nameColor, side: THREE.DoubleSide });
-      const edgeRing = new THREE.Mesh(ringGeom, ringMat);
-      edgeRing.position.z = 0.035;
+      // 2. Lathe Concave Parabolic Collector Ring (Brushed Amber Accent, 128 segs)
+      const collarGeom = new THREE.TorusGeometry(0.16, 0.022, 32, 128);
+      collarGeom.computeVertexNormals();
+      const edgeRing = new THREE.Mesh(collarGeom, PBR_PALETTE.brushedAmber);
+      edgeRing.position.z = 0.04;
       g.add(edgeRing);
 
-      // Floating Optical Collector Prism
-      const prismGeom = new THREE.OctahedronGeometry(0.065, 0);
-      const prismMat = new THREE.MeshPhysicalMaterial({
-        color: nameColor,
-        emissive: nameColor,
-        emissiveIntensity: 0.85,
-        roughness: 0.04,
-        metalness: 0.2,
-        transmission: 0.65,
-        ior: 1.62
-      });
-      const prism = new THREE.Mesh(prismGeom, prismMat);
+      // 3. Optical Fused-Quartz Cylindrical Envelope (Refractive Glass, 64 segs)
+      const glassGeom = new THREE.CylinderGeometry(0.11, 0.11, 0.18, 64);
+      glassGeom.rotateX(Math.PI / 2);
+      glassGeom.computeVertexNormals();
+      const prism = new THREE.Mesh(glassGeom, PBR_PALETTE.opticalSapphire);
       prism.position.z = 0.12;
       g.add(prism);
 
-      // High-Frequency Pulse Splash Ring
-      const splashGeom = new THREE.RingGeometry(0.03, 0.08, 32);
+      // 4. Internal Laser Needle Core (Active Photonic Emitter)
+      const emitterGeom = new THREE.CylinderGeometry(0.014, 0.014, 0.16, 32);
+      emitterGeom.rotateX(Math.PI / 2);
+      const emitter = new THREE.Mesh(emitterGeom, PBR_PALETTE.laserAmberGlow);
+      emitter.position.z = 0.12;
+      g.add(emitter);
+
+      // 5. High-Frequency Pulse Splash Ring (64 segs)
+      const splashGeom = new THREE.RingGeometry(0.04, 0.10, 64);
       const splashMat = new THREE.MeshBasicMaterial({
-        color: 0xffffff,
+        color: 0xf59e0b,
         transparent: true,
         opacity: 0.0,
         blending: THREE.AdditiveBlending,
         side: THREE.DoubleSide
       });
       const splashMesh = new THREE.Mesh(splashGeom, splashMat);
-      splashMesh.position.z = 0.15;
+      splashMesh.position.z = 0.22;
       g.add(splashMesh);
 
             // 3D Staggered High-Contrast Retina Telemetry Label Sprite (Crystal-clear human legibility)
@@ -1871,17 +2054,15 @@
       // KINETIC SCULPTED GLB CHOREOGRAPHY (ZERO CLIPPING!)
       // ------------------------------------------
       if (vaultModel) {
-        // Outer Gimbal: Rotates on Horizontal Axle between Stanchion Bearings
-        if (glbGimbalOuter) {
-          const outerSpin = (currentPhase === 2 ? t * 1.2 : (currentPhase === 3 ? t * 0.35 : Math.sin(t * 0.5) * 0.04));
-          glbGimbalOuter.rotation.x = outerSpin;
-        }
+        // Silky 256-Segment Procedural Gimbal Kinematics
+        const outerSpin = (currentPhase === 2 ? t * 1.2 : (currentPhase === 3 ? t * 0.35 : Math.sin(t * 0.5) * 0.04));
+        if (silkyOuterGimbal) silkyOuterGimbal.rotation.x = outerSpin;
 
-        // Mid Gimbal: Counter-Rotating on Orthogonal Trunnions
-        if (glbGimbalMid) {
-          const midSpeed = (currentPhase === 2 ? 0.045 : (currentPhase === 3 ? 0.012 : 0.002));
-          glbGimbalMid.rotation.y += midSpeed;
-        }
+        const midSpeed = (currentPhase === 2 ? 0.045 : (currentPhase === 3 ? 0.012 : 0.002));
+        if (silkyMidGimbal) silkyMidGimbal.rotation.y += midSpeed;
+
+        if (glbGimbalOuter) glbGimbalOuter.rotation.x = outerSpin;
+        if (glbGimbalMid) glbGimbalMid.rotation.y += midSpeed;
 
         // Caliper Clamps: Hydraulic jaws open during settlement
         if (glbCaliperIris) {
