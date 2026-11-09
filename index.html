@@ -671,7 +671,7 @@
     });
     const floorMesh = new THREE.Mesh(floorGeom, floorMat);
     floorMesh.rotation.x = -Math.PI / 2;
-    floorMesh.position.y = -1.45;
+    floorMesh.position.y = -1.75;
     scene.add(floorMesh);
 
     // Contact Ambient Occlusion Shadow Disc Directly Beneath Vault Rig
@@ -693,7 +693,7 @@
     });
     const contactShadow = new THREE.Mesh(contactShadowGeom, contactShadowMat);
     contactShadow.rotation.x = -Math.PI / 2;
-    contactShadow.position.y = -1.448;
+    contactShadow.position.y = -1.748;
     scene.add(contactShadow);
 
     // Procedural Studio Lighting Environment (PMREM)
@@ -726,7 +726,7 @@
     });
     const shadowPlane = new THREE.Mesh(shadowGeom, shadowMat);
     shadowPlane.rotation.x = -Math.PI / 2;
-    shadowPlane.position.y = -1.45;
+    shadowPlane.position.y = -1.75;
     scene.add(shadowPlane);
 
     // =========================================================================
@@ -1048,13 +1048,13 @@
       const stanchionGroup = new THREE.Group();
       stanchionGroup.position.set(px, 0, 0);
 
-      // 1. Tapered Streamlined A-Frame Column (Swept organic profile, 64 segments)
+      // 1. Tapered Streamlined A-Frame Column (Rests flush on floor at Y = -1.75)
       const curvePoints = [];
-      curvePoints.push(new THREE.Vector2(0.24, -2.15)); // Flanged wide base
-      curvePoints.push(new THREE.Vector2(0.20, -1.80));
-      curvePoints.push(new THREE.Vector2(0.13, -1.10)); // Slender aero waist
-      curvePoints.push(new THREE.Vector2(0.15, -0.40));
-      curvePoints.push(new THREE.Vector2(0.21, -0.05)); // Pillow block flare
+      curvePoints.push(new THREE.Vector2(0.28, -1.75)); // Wide flanged base resting ON the floor
+      curvePoints.push(new THREE.Vector2(0.22, -1.55)); // Sculpted lower transition
+      curvePoints.push(new THREE.Vector2(0.14, -0.95)); // Slender aerodynamic waist
+      curvePoints.push(new THREE.Vector2(0.16, -0.35)); // Upward flare
+      curvePoints.push(new THREE.Vector2(0.22, -0.05)); // Pillow block flare
       const latheGeom = new THREE.LatheGeometry(curvePoints, 64);
       latheGeom.computeVertexNormals();
       const columnMesh = new THREE.Mesh(latheGeom, PBR_PALETTE.satinTitanium);
@@ -1091,18 +1091,18 @@
       axleMesh.position.x = -sign * 0.225;
       stanchionGroup.add(axleMesh);
 
-      // 5. Ground Anchorage Foot Flange with 4 Micro-Bolts
-      const footGeom = new THREE.CylinderGeometry(0.32, 0.36, 0.10, 64);
+      // 5. Ground Anchorage Foot Flange with 4 Micro-Bolts directly ON the floor (-1.75)
+      const footGeom = new THREE.CylinderGeometry(0.34, 0.38, 0.08, 64);
       footGeom.computeVertexNormals();
       const footMesh = new THREE.Mesh(footGeom, PBR_PALETTE.satinTitanium);
-      footMesh.position.y = -2.15;
+      footMesh.position.y = -1.71; // Sits cleanly on the floor plane (-1.75 + 0.04)
       stanchionGroup.add(footMesh);
 
       for (let b = 0; b < 4; b++) {
         const bAngle = (b / 4) * Math.PI * 2 + Math.PI / 4;
-        const boltGeom = new THREE.CylinderGeometry(0.020, 0.020, 0.04, 24);
+        const boltGeom = new THREE.CylinderGeometry(0.022, 0.022, 0.04, 24);
         const boltMesh = new THREE.Mesh(boltGeom, PBR_PALETTE.brushedAmber);
-        boltMesh.position.set(Math.cos(bAngle) * 0.26, -2.09, Math.sin(bAngle) * 0.26);
+        boltMesh.position.set(Math.cos(bAngle) * 0.28, -1.67, Math.sin(bAngle) * 0.28);
         stanchionGroup.add(boltMesh);
       }
 
@@ -1120,7 +1120,7 @@
     const turntableRimGeom = new THREE.CylinderGeometry(2.18, 2.24, 0.12, 128);
     turntableRimGeom.computeVertexNormals();
     const turntableRimMesh = new THREE.Mesh(turntableRimGeom, PBR_PALETTE.darkObsidian);
-    turntableRimMesh.position.y = -2.20;
+    turntableRimMesh.position.y = -1.69;
     scene.add(turntableRimMesh);
 
     const turntableAmberBezel = new THREE.TorusGeometry(2.18, 0.022, 32, 256);
@@ -1700,6 +1700,26 @@
       const g = new THREE.Group();
       g.position.copy(pos);
 
+      // 0. Aerodynamic Grounding Pylon Stalk (Connects transceiver down to the floor at Y = -1.75)
+      // pos.y is -0.72, distance to floor is 1.03 units
+      const pylonGeom = new THREE.CylinderGeometry(0.045, 0.085, 1.03, 48);
+      pylonGeom.computeVertexNormals();
+      const pylonMesh = new THREE.Mesh(pylonGeom, PBR_PALETTE.satinTitanium);
+      pylonMesh.position.y = -0.515;
+      g.add(pylonMesh);
+
+      // Pylon Floor Flange resting on Y = -1.75
+      const pylonFlangeGeom = new THREE.CylinderGeometry(0.14, 0.16, 0.04, 48);
+      pylonFlangeGeom.computeVertexNormals();
+      const pylonFlange = new THREE.Mesh(pylonFlangeGeom, PBR_PALETTE.satinTitanium);
+      pylonFlange.position.y = -1.01;
+      g.add(pylonFlange);
+
+      const pylonCollar = new THREE.Mesh(new THREE.TorusGeometry(0.14, 0.012, 16, 64), PBR_PALETTE.brushedAmber);
+      pylonCollar.rotateX(Math.PI / 2);
+      pylonCollar.position.y = -0.99;
+      g.add(pylonCollar);
+
       // 1. 128-segment Stepped Bead-Blasted Titanium Riser Pedestal
       const riserGeom = new THREE.CylinderGeometry(0.16, 0.20, 0.08, 128);
       riserGeom.rotateX(Math.PI / 2);
@@ -1854,7 +1874,7 @@
       for (let i = 0; i <= segs; i++) {
         const alpha = i / segs;
         const pt = fromVec.clone().lerp(toVec, alpha);
-        pt.y = -0.908;
+        pt.y = -1.745;
         points.push(pt);
       }
       const geom = new THREE.BufferGeometry().setFromPoints(points);
@@ -1884,7 +1904,7 @@
       blending: THREE.AdditiveBlending
     });
     const shockwaveMesh = new THREE.Mesh(shockwaveGeom, shockwaveMat);
-    shockwaveMesh.position.set(0, -0.905, 0);
+    shockwaveMesh.position.set(0, -1.745, 0);
     scene.add(shockwaveMesh);
     let shockwaveTime = 999.0;
 
