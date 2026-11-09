@@ -1115,20 +1115,7 @@
     scene.add(rightTrunnion);
 
     // =========================================================================
-    // 3. PRECISION DOCKING TURNTABLE RIM (128-SEG BEVEL & 256-SEG BUS RING)
-    // =========================================================================
-    const turntableRimGeom = new THREE.CylinderGeometry(2.18, 2.24, 0.12, 128);
-    turntableRimGeom.computeVertexNormals();
-    const turntableRimMesh = new THREE.Mesh(turntableRimGeom, PBR_PALETTE.darkObsidian);
-    turntableRimMesh.position.y = -1.69;
-    scene.add(turntableRimMesh);
-
-    const turntableAmberBezel = new THREE.TorusGeometry(2.18, 0.022, 32, 256);
-    turntableAmberBezel.rotateX(Math.PI / 2);
-    turntableAmberBezel.computeVertexNormals();
-    const turntableAmberMesh = new THREE.Mesh(turntableAmberBezel, PBR_PALETTE.brushedAmber);
-    turntableAmberMesh.position.y = -2.14;
-    scene.add(turntableAmberMesh);
+    // 3. Unobstructed 360-degree open air gyroscopic clearance
 
     const gltfLoader = new THREE.GLTFLoader();
 
@@ -1226,11 +1213,9 @@
         }
       });
 
-      // Ground the monolithic chassis base directly into the world environment
+      // Excise floating chassis well to provide 360-degree unobstructed gyroscopic clearance
       if (glbChassis) {
-        scene.add(glbChassis);
-        glbChassis.scale.set(0.42, 0.42, 0.42);
-        glbChassis.position.set(0, 0, 0);
+        glbChassis.visible = false;
       }
 
       // Mount high-precision planar proof faceplates on both faces of the coin
