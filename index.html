@@ -9,16 +9,20 @@
   <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #030407;
-      --line: rgba(255, 255, 255, 0.08);
-      --line-active: rgba(0, 255, 163, 0.25);
-      --text: #f1f5f9;
-      --muted: #64748b;
-      --dim: #334155;
-      --green: #00ffa3;
-      --cyan: #38bdf8;
-      --yellow: #facc15;
-      --red: #f87171;
+      --bg: #06070a;
+      --line: rgba(255, 255, 255, 0.07);
+      --line-active: rgba(245, 158, 11, 0.4);
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --dim: #475569;
+      --amber: #f59e0b;
+      --amber-glow: #fbbf24;
+      --gold: #d97706;
+      --titanium: #e2e8f0;
+      --green: #f59e0b;
+      --cyan: #fbbf24;
+      --yellow: #f59e0b;
+      --red: #d97706;
     }
 
     * {
@@ -56,6 +60,51 @@
       opacity: 0.038;
       mix-blend-mode: overlay;
       background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    }
+
+    
+    /* === EDITORIAL RESTRAINT: HIDE CYBERPUNK CLUTTER === */
+    .left-strip, .right-strip, .reticle-cross, #anamorphic-flare {
+      display: none !important;
+    }
+
+    .avionics-cockpit {
+      grid-template-columns: 1fr !important;
+      grid-template-rows: 56px 1fr 56px !important;
+      padding: 16px 24px !important;
+    }
+
+    .top-ribbon {
+      background: rgba(8, 10, 15, 0.75) !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      height: 52px !important;
+      border-radius: 10px !important;
+    }
+
+    .bottom-ribbon {
+      grid-column: 1 / -1 !important;
+      background: rgba(8, 10, 15, 0.75) !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      border-radius: 10px !important;
+      height: 52px !important;
+    }
+
+    .narrative-pill {
+      background: rgba(8, 10, 15, 0.90) !important;
+      border: 1px solid rgba(245, 158, 11, 0.35) !important;
+      bottom: 80px !important;
+      padding: 10px 24px !important;
+      font-size: 11.5px !important;
+    }
+
+    .btn-record {
+      background: #f59e0b !important;
+      color: #000000 !important;
+      font-weight: 700 !important;
+      box-shadow: 0 0 16px rgba(245, 158, 11, 0.3) !important;
+    }
+    .btn-record:hover {
+      box-shadow: 0 0 24px rgba(245, 158, 11, 0.5) !important;
     }
 
     /* === CINEMATIC FLOATING FROSTED GLASS HUD OVERLAY === */
@@ -597,25 +646,24 @@
     renderer.toneMappingExposure = 1.25;
 
     const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x06070a);
     window.__SCENE = scene;
-    scene.fog = new THREE.FogExp2(0x020408, 0.045);
+    scene.fog = new THREE.FogExp2(0x06070a, 0.055);
 
     // Cinematic 32° Perspective Camera (Framed with breathing room, vault left-of-center)
     const camera = new THREE.PerspectiveCamera(32, window.innerWidth / window.innerHeight, 0.1, 100);
-    camera.position.set(-0.25, 0.45, 4.8);
-    camera.lookAt(-0.10, -0.25, 0);
+    camera.position.set(0.0, 0.15, 3.75);
+    camera.lookAt(0.0, -0.15, 0.0);
 
     // Atmospheric Cleanroom Horizon Fog
-    scene.fog = new THREE.FogExp2(0x03060c, 0.035);
+    scene.fog = new THREE.FogExp2(0x06070a, 0.055);
 
     // =========================================================================
     // INFINITE DARK OBSIDIAN CLEANROOM FLOOR WITH FRESNEL REFLECTIONS
     // =========================================================================
     const floorGeom = new THREE.PlaneGeometry(60, 60, 1, 1);
     const floorMat = new THREE.MeshStandardMaterial({
-      color: 0x03060c,
-      metalness: 0.90,
-      roughness: 0.22,
+      color: 0x06070a, metalness: 0.85, roughness: 0.38,
       envMap: scene.environment,
       envMapIntensity: 0.85
     });
@@ -691,11 +739,11 @@
 
     // Subtle Rim Lights focused on coin / gimbal silhouettes
     // Rim Light (Positioned below/behind so it rims the floating rings without touching the table top)
-    const rimLight = new THREE.DirectionalLight(0x38bdf8, 0.45);
+    const rimLight = new THREE.DirectionalLight(0xfff8ee, 0.85);
     rimLight.position.set(3, -0.8, -3);
     scene.add(rimLight);
 
-    const solanaPurpleRim = new THREE.DirectionalLight(0x9945ff, 1.3);
+    const solanaPurpleRim = new THREE.DirectionalLight(0xf59e0b, 1.4);
     solanaPurpleRim.position.set(-4, -1, -2);
     scene.add(solanaPurpleRim);
 
@@ -704,7 +752,7 @@
     scene.add(fillLight);
 
     // Interior Well Glow (Upward theatrical illumination from inside the recessed escrow trench)
-    const wellLight = new THREE.PointLight(0xf87171, 1.0, 3.5, 2.0);
+    const wellLight = new THREE.PointLight(0xd97706, 1.2, 4.0, 2.0);
     wellLight.position.set(0, -0.40, 0);
     scene.add(wellLight);
 
@@ -730,18 +778,18 @@
     usdcCanvas.width = 1024; usdcCanvas.height = 1024;
     const uCtx = usdcCanvas.getContext("2d");
 
-    // Deep sapphire brushed radial gradient
+    // Deep matte titanium-obsidian radial gradient
     const uGrad = uCtx.createRadialGradient(512, 512, 50, 512, 512, 512);
-    uGrad.addColorStop(0, "#08284d");
-    uGrad.addColorStop(0.65, "#04152b");
-    uGrad.addColorStop(1, "#020914");
+    uGrad.addColorStop(0, "#1a1f29");
+    uGrad.addColorStop(0.60, "#0c0e14");
+    uGrad.addColorStop(1, "#050608");
     uCtx.fillStyle = uGrad;
     uCtx.fillRect(0, 0, 1024, 1024);
 
-    // Lathe concentric micro-grooves
-    uCtx.lineWidth = 1.2;
-    for (let r = 80; r < 500; r += 10) {
-      uCtx.strokeStyle = (r % 30 === 0) ? "rgba(56, 189, 248, 0.45)" : "rgba(14, 40, 75, 0.6)";
+    // Lathe concentric micro-grooves (Swiss horological finish)
+    uCtx.lineWidth = 1.0;
+    for (let r = 80; r < 500; r += 8) {
+      uCtx.strokeStyle = (r % 40 === 0) ? "rgba(245, 158, 11, 0.35)" : "rgba(255, 255, 255, 0.05)";
       uCtx.beginPath(); uCtx.arc(512, 512, r, 0, Math.PI * 2); uCtx.stroke();
     }
 
@@ -757,15 +805,15 @@
       uCtx.stroke();
     }
 
-    // Iconic USDC Double-Crescent Contour Ring
-    uCtx.strokeStyle = "#38bdf8";
-    uCtx.lineWidth = 18;
+    // Refined Titanium & Solar Amber Contour Ring
+    uCtx.strokeStyle = "#cbd5e1";
+    uCtx.lineWidth = 14;
     uCtx.beginPath();
     uCtx.arc(512, 512, 290, 0, Math.PI * 2);
     uCtx.stroke();
 
-    uCtx.strokeStyle = "#00ffa3";
-    uCtx.lineWidth = 6;
+    uCtx.strokeStyle = "#f59e0b";
+    uCtx.lineWidth = 4;
     uCtx.beginPath();
     uCtx.arc(512, 512, 310, 0, Math.PI * 2);
     uCtx.stroke();
@@ -775,7 +823,7 @@
     uCtx.font = "900 240px 'Space Grotesk', sans-serif";
     uCtx.textAlign = "center";
     uCtx.textBaseline = "middle";
-    uCtx.shadowColor = "#38bdf8";
+    uCtx.shadowColor = "#f59e0b";
     uCtx.shadowBlur = 35;
     uCtx.fillText("$", 512, 520);
     uCtx.shadowBlur = 0;
@@ -794,18 +842,18 @@
     solanaProofCanvas.width = 1024; solanaProofCanvas.height = 1024;
     const solCtx = solanaProofCanvas.getContext("2d");
 
-    // Deep cosmic obsidian-violet radial gradient
+    // Deep matte obsidian-tungsten radial gradient
     const sGrad = solCtx.createRadialGradient(512, 512, 40, 512, 512, 512);
-    sGrad.addColorStop(0, "#220938");
-    sGrad.addColorStop(0.55, "#0d0317");
-    sGrad.addColorStop(1, "#020005");
+    sGrad.addColorStop(0, "#1e170d");
+    sGrad.addColorStop(0.55, "#0d0a06");
+    sGrad.addColorStop(1, "#040302");
     solCtx.fillStyle = sGrad;
     solCtx.fillRect(0, 0, 1024, 1024);
 
-    // Lathe concentric precision rings
-    solCtx.lineWidth = 1.2;
-    for (let r = 80; r < 500; r += 12) {
-      solCtx.strokeStyle = (r % 36 === 0) ? "rgba(20, 241, 149, 0.40)" : "rgba(153, 69, 255, 0.25)";
+    // Lathe concentric precision rings (Solar Amber & 24k Gold)
+    solCtx.lineWidth = 1.0;
+    for (let r = 80; r < 500; r += 8) {
+      solCtx.strokeStyle = (r % 32 === 0) ? "rgba(245, 158, 11, 0.50)" : "rgba(255, 255, 255, 0.06)";
       solCtx.beginPath(); solCtx.arc(512, 512, r, 0, Math.PI * 2); solCtx.stroke();
     }
 
@@ -839,14 +887,14 @@
       solCtx.save();
       const bGrad = solCtx.createLinearGradient(310, yCenter, 714, yCenter);
       if (!flip) {
-        bGrad.addColorStop(0, "#9945ff");
-        bGrad.addColorStop(1, "#14f195");
+        bGrad.addColorStop(0, "#f59e0b");
+        bGrad.addColorStop(1, "#fbbf24");
       } else {
-        bGrad.addColorStop(0, "#14f195");
-        bGrad.addColorStop(1, "#9945ff");
+        bGrad.addColorStop(0, "#fbbf24");
+        bGrad.addColorStop(1, "#d97706");
       }
       solCtx.fillStyle = bGrad;
-      solCtx.shadowColor = "#14f195";
+      solCtx.shadowColor = "#f59e0b";
       solCtx.shadowBlur = 24;
 
       const skew = flip ? -55 : 55;
@@ -952,7 +1000,7 @@
         }
         if (child.name === 'Chassis_Luminous_Bus_Ring') {
           child.material = new THREE.MeshBasicMaterial({
-            color: 0x00ffa3
+            color: 0xf59e0b
           });
         }
 
@@ -960,7 +1008,7 @@
         if (child.name === 'Solana_Crystal_Shard') {
           child.material = new THREE.MeshPhysicalMaterial({
             color: 0x120426,
-            emissive: 0x9945ff,
+            emissive: 0xf59e0b,
             emissiveIntensity: 0.65,
             roughness: 0.12,
             metalness: 0.88,
@@ -975,7 +1023,7 @@
         // Internal Singularity Laser Filament
         if (child.name === 'Solana_Laser_Filament') {
           child.material = new THREE.MeshBasicMaterial({
-            color: 0x9945ff
+            color: 0xf59e0b
           });
         }
 
@@ -1070,15 +1118,15 @@
 
         // Midnight Obsidian Base with Deep Radial Hue
         const baseGrad = sCtx.createRadialGradient(cx, cy, 200, cx, cy, 1024);
-        baseGrad.addColorStop(0, "#0c0818");
-        baseGrad.addColorStop(0.65, "#060710");
-        baseGrad.addColorStop(1, "#020408");
+        baseGrad.addColorStop(0, "#0f1117");
+        baseGrad.addColorStop(0.65, "#08090d");
+        baseGrad.addColorStop(1, "#040507");
         sCtx.fillStyle = baseGrad;
         sCtx.fillRect(0, 0, 2048, 2048);
 
         // 240 Fine Lathe Micro-Grooves (Concentric Anisotropic Tracks)
         for (let r = 260; r < 980; r += 4) {
-          sCtx.strokeStyle = (r % 24 === 0) ? "rgba(153, 69, 255, 0.22)" : "rgba(255, 255, 255, 0.04)";
+          sCtx.strokeStyle = (r % 24 === 0) ? "rgba(245, 158, 11, 0.40)" : "rgba(255, 255, 255, 0.05)";
           sCtx.lineWidth = (r % 24 === 0) ? 2.5 : 1.0;
           sCtx.beginPath();
           sCtx.arc(cx, cy, r, 0, Math.PI * 2);
@@ -1091,7 +1139,7 @@
           const isMajor = i % 6 === 0;
           const r1 = isMajor ? 880 : 920;
           const r2 = 960;
-          sCtx.strokeStyle = isMajor ? "#14f195" : "rgba(148, 163, 184, 0.45)";
+          sCtx.strokeStyle = isMajor ? "#f59e0b" : "rgba(203, 213, 225, 0.35)";
           sCtx.lineWidth = isMajor ? 4 : 2;
           sCtx.beginPath();
           sCtx.moveTo(cx + Math.cos(a) * r1, cy + Math.sin(a) * r1);
@@ -1181,18 +1229,18 @@
         const geomMid = createBeveledSolanaBar(-0.08); geomMid.center();
         const geomBot = createBeveledSolanaBar(0.08); geomBot.center();
 
-        // Forged Iridescent Metallic Shader
+        // Swiss Luxury Horological Materials: Solar Amber, 24k Gold & Brushed Platinum
         const matTop = new THREE.MeshStandardMaterial({
-          color: 0x9945ff, emissive: 0x6b21a8, emissiveIntensity: 0.85,
-          metalness: 0.95, roughness: 0.10, envMap: scene.environment, envMapIntensity: 2.6
+          color: 0xf59e0b, emissive: 0xb45309, emissiveIntensity: 0.45,
+          metalness: 0.98, roughness: 0.08, envMap: scene.environment, envMapIntensity: 3.0
         });
         const matMid = new THREE.MeshStandardMaterial({
-          color: 0x38bdf8, emissive: 0x0284c7, emissiveIntensity: 0.85,
-          metalness: 0.95, roughness: 0.10, envMap: scene.environment, envMapIntensity: 2.6
+          color: 0xfbbf24, emissive: 0xd97706, emissiveIntensity: 0.45,
+          metalness: 0.98, roughness: 0.08, envMap: scene.environment, envMapIntensity: 3.0
         });
         const matBot = new THREE.MeshStandardMaterial({
-          color: 0x14f195, emissive: 0x059669, emissiveIntensity: 0.85,
-          metalness: 0.95, roughness: 0.10, envMap: scene.environment, envMapIntensity: 2.6
+          color: 0xe2e8f0, emissive: 0x64748b, emissiveIntensity: 0.25,
+          metalness: 0.98, roughness: 0.08, envMap: scene.environment, envMapIntensity: 3.0
         });
 
         const barPositions = [
@@ -1216,13 +1264,13 @@
 
         // 5. Dual Precision Aerospace Gyro Rings
         const gyro1Geom = new THREE.TorusGeometry(1.08, 0.008, 16, 80);
-        const gyro1Mat = new THREE.MeshBasicMaterial({ color: 0x14f195 });
+        const gyro1Mat = new THREE.MeshStandardMaterial({ color: 0xe2e8f0, roughness: 0.2, metalness: 0.95 });
         window.solGyroRing1 = new THREE.Mesh(gyro1Geom, gyro1Mat);
         window.solGyroRing1.rotation.x = Math.PI / 5;
         solanaBullionGroup.add(window.solGyroRing1);
 
         const gyro2Geom = new THREE.TorusGeometry(1.22, 0.008, 16, 80);
-        const gyro2Mat = new THREE.MeshBasicMaterial({ color: 0x9945ff });
+        const gyro2Mat = new THREE.MeshStandardMaterial({ color: 0xf59e0b, roughness: 0.2, metalness: 0.95 });
         window.solGyroRing2 = new THREE.Mesh(gyro2Geom, gyro2Mat);
         window.solGyroRing2.rotation.x = -Math.PI / 5;
         solanaBullionGroup.add(window.solGyroRing2);
@@ -1284,7 +1332,7 @@
 
     // Micro-Fee Droplet (Visible ONLY during active transfer Phase 2)
     const dropletGeom = new THREE.SphereGeometry(0.065, 20, 20);
-    const dropletMat = new THREE.MeshBasicMaterial({ color: 0x00ffa3 });
+    const dropletMat = new THREE.MeshBasicMaterial({ color: 0xf59e0b });
     const dropletMesh = new THREE.Mesh(dropletGeom, dropletMat);
     dropletMesh.position.set(0.95, 0.45, 0.12);
     dropletMesh.visible = false;
@@ -1388,7 +1436,7 @@
     const solanaMat = new THREE.MeshPhysicalMaterial({
       map: solanaTexture,
       color: 0x14052b,
-      emissive: 0x9945ff,
+      emissive: 0xf59e0b,
       emissiveIntensity: 0.45,
       roughness: 0.03,
       metalness: 0.20,
@@ -1405,14 +1453,14 @@
     // Inner Laser Singularity (Emerald Core that pulses with Solana energy)
     const solCoreEmerald = new THREE.Mesh(
       new THREE.OctahedronGeometry(0.28, 0),
-      new THREE.MeshBasicMaterial({ color: 0x00ffa3, wireframe: false })
+      new THREE.MeshBasicMaterial({ color: 0xf59e0b, wireframe: false })
     );
     solanaGroup.add(solCoreEmerald);
 
     // Single Slender Gyro Gimbal
     const solGyro = new THREE.Mesh(
       new THREE.TorusGeometry(0.85, 0.008, 16, 64),
-      new THREE.MeshStandardMaterial({ color: 0x00ffa3, metalness: 0.95, roughness: 0.1 })
+      new THREE.MeshStandardMaterial({ color: 0xf59e0b, metalness: 0.95, roughness: 0.1 })
     );
     solGyro.rotation.x = Math.PI / 4;
     solanaGroup.add(solGyro);
@@ -1525,20 +1573,20 @@
       const labelCanvas = document.createElement("canvas");
       labelCanvas.width = 256; labelCanvas.height = 64;
       const lCtx = labelCanvas.getContext("2d");
-      lCtx.fillStyle = "rgba(4, 8, 16, 0.82)";
-      if (lCtx.roundRect) { lCtx.roundRect(4, 4, 248, 56, 8); lCtx.fill(); } else { lCtx.fillRect(4, 4, 248, 56); }
-      lCtx.strokeStyle = "#" + nameColor.toString(16).padStart(6, '0');
-      lCtx.lineWidth = 2.0;
+      lCtx.fillStyle = "rgba(10, 12, 18, 0.88)";
+      if (lCtx.roundRect) { lCtx.roundRect(8, 8, 240, 48, 6); lCtx.fill(); } else { lCtx.fillRect(8, 8, 240, 48); }
+      lCtx.strokeStyle = "rgba(245, 158, 11, 0.45)";
+      lCtx.lineWidth = 1.0;
       lCtx.stroke();
-      lCtx.fillStyle = "#ffffff";
-      lCtx.font = "bold 20px 'JetBrains Mono', monospace";
+      lCtx.fillStyle = "#f8fafc";
+      lCtx.font = "600 17px 'JetBrains Mono', monospace";
       lCtx.textAlign = "center";
       lCtx.fillText(labelText, 128, 38);
 
       const labelTex = new THREE.CanvasTexture(labelCanvas);
-      const spriteMat = new THREE.SpriteMaterial({ map: labelTex, transparent: true, opacity: 0.90 });
+      const spriteMat = new THREE.SpriteMaterial({ map: labelTex, transparent: true, opacity: 0.0 });
       const sprite = new THREE.Sprite(spriteMat);
-      sprite.scale.set(0.44, 0.11, 1.0);
+      sprite.scale.set(0.32, 0.08, 1.0);
       sprite.position.set(0, yOffset, 0);
       g.add(sprite);
 
@@ -1554,9 +1602,9 @@
     const satDflowPos   = new THREE.Vector3(0.95, -0.80, 1.25);
     const satOkxPos     = new THREE.Vector3(1.30, -0.80, 0.95);
 
-    const satJupiter = createSatelliteNode(satJupiterPos, 0x00ffa3, "JUPITER // 99.4%", 0.22);
-    const satDflow   = createSatelliteNode(satDflowPos,   0x38bdf8, "DFLOW // 0.4%",    0.26);
-    const satOkx     = createSatelliteNode(satOkxPos,     0xfacc15, "OKX // 0.2%",      0.22);
+    const satJupiter = createSatelliteNode(satJupiterPos, 0xf59e0b, "JUPITER // 99.4%", 0.32);
+    const satDflow   = createSatelliteNode(satDflowPos,   0xfbbf24, "DFLOW // 0.4%",    0.38);
+    const satOkx     = createSatelliteNode(satOkxPos,     0xd97706, "OKX // 0.2%",      0.32);
 
     scene.add(satJupiter.group);
     scene.add(satDflow.group);
@@ -1589,15 +1637,15 @@
       return { line, mat, colorHex };
     }
 
-    const traceJupiter = createFloorTrace(new THREE.Vector3(0.35, -0.908, 0.60), satJupiterPos, 0x00ffa3);
-    const traceDflow   = createFloorTrace(new THREE.Vector3(0.55, -0.908, 0.45), satDflowPos,   0x38bdf8);
+    const traceJupiter = createFloorTrace(new THREE.Vector3(0.35, -0.908, 0.60), satJupiterPos, 0xf59e0b);
+    const traceDflow   = createFloorTrace(new THREE.Vector3(0.55, -0.908, 0.45), satDflowPos,   0xfbbf24);
     const traceOkx     = createFloorTrace(new THREE.Vector3(0.65, -0.908, 0.30), satOkxPos,     0xfacc15);
 
     // Expanding Settlement Shockwave Ring
     const shockwaveGeom = new THREE.RingGeometry(0.12, 0.22, 64);
     shockwaveGeom.rotateX(-Math.PI / 2);
     const shockwaveMat = new THREE.MeshBasicMaterial({
-      color: 0x14f195,
+      color: 0xf59e0b,
       transparent: true,
       opacity: 0.0,
       side: THREE.DoubleSide,
@@ -1658,8 +1706,8 @@
       return { beam: coreMesh, halo: haloMesh, beamMat: coreMat, haloMat, targetPos, p1, p2 };
     }
 
-    const conduitJupiter = createCoherentLaserConduit(satJupiterPos, 0x00ffa3);
-    const conduitDflow   = createCoherentLaserConduit(satDflowPos,   0x38bdf8);
+    const conduitJupiter = createCoherentLaserConduit(satJupiterPos, 0xf59e0b);
+    const conduitDflow   = createCoherentLaserConduit(satDflowPos,   0xfbbf24);
     const conduitOkx     = createCoherentLaserConduit(satOkxPos,     0xfacc15);
     
     // State Variables
@@ -1758,7 +1806,7 @@
       camera.position.x = Math.sin(orbitAngleY) * orbitDist - 0.20;
       camera.position.z = Math.cos(orbitAngleY) * orbitDist;
       camera.position.y = Math.max(-0.10, Math.min(2.2, orbitElev));
-      camera.lookAt(-0.10, -0.25, 0);
+      camera.lookAt(0.0, -0.15, 0.0);
 
       // Kinetic Metamorphic Interpolation (0.0 = USDC Coin Hero, 1.0 = Solana Crystal Shard Hero)
       const targetProg = (currentPhase === 3) ? 1.0 : (currentPhase === 2 ? 0.35 : 0.0);
@@ -1910,8 +1958,8 @@
         satJupiter.light.intensity = 0; satDflow.light.intensity = 0; satOkx.light.intensity = 0;
         satJupiter.splashMat.opacity = 0; satDflow.splashMat.opacity = 0; satOkx.splashMat.opacity = 0;
       } else {
-        rimLight.color.setHex(0x00ffa3);
-        wellLight.color.setHex(0x14f195);
+        rimLight.color.setHex(0xf59e0b);
+        wellLight.color.setHex(0xf59e0b);
         wellLight.intensity = 1.5;
 
         const laserAlpha = Math.min(1.0, Math.max(0.0, (kineticProgress - 0.15) * 2.5));
@@ -2042,19 +2090,19 @@
     const narrativeText = document.getElementById("narrative-text");
 
     const steps = [
-      { delay: 300, html: '<span style="color:var(--cyan)">❯ agent --role compute --rail hermes</span>' },
-      { delay: 700, html: '<span style="color:var(--muted)">[INIT] Connecting to Hermes router: zero static keys</span>' },
-      { delay: 1200, html: '<span style="color:var(--yellow)">POST https://hermes.swap.io/v1/swap/quote</span>' },
-      { delay: 1600, html: '<span style="color:var(--muted)">Pair: USDC/SOL | Amount: 10000000 | Slippage: 50bps</span>' },
-      { delay: 2100, html: '<span style="color:var(--red)">HTTP 402 Payment Required</span>', phase1: true },
-      { delay: 2500, html: '<span style="color:var(--muted)">├── Asset    : EPjFWdd5Aufq... (USDC)\n├── PayTo    : BPz2u6eoWLervx... (Hermes)\n├── FeePayer : 2wKupLR9q6w... (Gas Free)\n└── Amount   : 4405 atomic ($0.004405 USDC)</span>', step2Active: true, phase2: true },
-      { delay: 3300, html: '<span style="color:var(--yellow)">⚡ AUTONOMOUS SPL SETTLEMENT TRIGGERED</span>' },
-      { delay: 3800, html: '<span style="color:var(--muted)">Signing exact transfer ($0.004405 USDC)...</span>' },
-      { delay: 4600, html: '<span style="color:var(--green)">✓ Tx Broadcast: 5Kj9vX2M8qR7bZ4tW1yP3nL6sD8f...</span>' },
-      { delay: 5100, html: '<span style="color:var(--cyan)">POST https://hermes.swap.io/v1/swap/quote</span>' },
-      { delay: 5400, html: '<span style="color:var(--muted)">Header: X-PAYMENT: eyJ4NDAyVmVyc2lvbiI6MSwic2...</span>' },
-      { delay: 6100, html: '<span style="color:var(--green)">✓ HTTP 200 OK — APERTURE VAULT UNLOCKED</span>' },
-      { delay: 6400, html: '<span style="color:var(--green)">🚀 Liquidity Vector Radiating across Jupiter / DFlow</span>', unlock: true, phase3: true }
+      { delay: 800, html: '<span style="color:var(--amber)">❯ agent --role compute --rail hermes</span>' },
+      { delay: 2500, html: '<span style="color:var(--muted)">[INIT] Connecting to Hermes router: zero static credentials</span>' },
+      { delay: 5000, html: '<span style="color:var(--amber)">POST https://hermes.swap.io/v1/swap/quote</span>' },
+      { delay: 8000, html: '<span style="color:var(--muted)">Pair: USDC/SOL | Amount: 10,000,000 atomic | Slippage: 50bps</span>' },
+      { delay: 12000, html: '<span style="color:var(--amber)">HTTP 402 Payment Required</span>', phase1: true },
+      { delay: 18000, html: '<span style="color:var(--muted)">├── Asset    : EPjFWdd5Aufq... (USDC)\n├── PayTo    : BPz2u6eoWLervx... (Hermes)\n├── FeePayer : 2wKupLR9q6w... (Gas Free)\n└── Amount   : 4405 atomic ($0.004405 USDC)</span>' },
+      { delay: 24000, html: '<span style="color:var(--amber-glow)">⚡ AUTONOMOUS SPL SETTLEMENT TRIGGERED</span>', step2Active: true, phase2: true },
+      { delay: 29000, html: '<span style="color:var(--muted)">Signing exact transfer ($0.004405 USDC) on Solana L1...</span>' },
+      { delay: 35000, html: '<span style="color:var(--amber)">✓ Tx Broadcast: 5Kj9vX2M8qR7bZ4tW1yP3nL6sD8f...</span>' },
+      { delay: 42000, html: '<span style="color:var(--amber)">POST https://hermes.swap.io/v1/swap/quote [Header: X-PAYMENT]</span>' },
+      { delay: 48000, html: '<span style="color:var(--amber-glow)">✓ HTTP 200 OK — APERTURE VAULT UNLOCKED</span>', unlock: true, phase3: true },
+      { delay: 54000, html: '<span style="color:var(--amber)">🚀 Liquidity Vectors Radiating: Jupiter 99.4% · DFlow 0.4% · OKX 0.2%</span>' },
+      { delay: 62000, html: '<span style="color:var(--muted)">[FINALITY] Machine-to-machine financial handshake settled in 60 FPS</span>' }
     ];
 
     let activeTimers = [];
@@ -2071,17 +2119,17 @@
       if (phase === 1) {
         narrativeDot.style.background = "#f87171";
         narrativeDot.style.boxShadow = "0 0 8px #f87171";
-        narrativeText.innerHTML = '<span style="color:#f87171;font-weight:700;">PHASE 01</span> · HTTP 402 Challenge — 3D USDC Coin locked at x402 Laser Airlock';
+        narrativeText.innerHTML = '<span style="color:var(--amber);font-weight:700;letter-spacing:1px;">PHASE 01 // AIRLOCK LOCKDOWN</span> — HTTP 402 Payment Required · Vault quarantined until micro-settlement';
         narrativePill.style.borderColor = "rgba(248, 113, 113, 0.35)";
       } else if (phase === 2) {
         narrativeDot.style.background = "var(--yellow)";
         narrativeDot.style.boxShadow = "0 0 8px var(--yellow)";
-        narrativeText.innerHTML = '<span style="color:var(--yellow);font-weight:700;">PHASE 02</span> · Micro-Fee Droplet ($0.004405 USDC) arcs to Hermes Receiver — Gas Free';
+        narrativeText.innerHTML = '<span style="color:var(--amber-glow);font-weight:700;letter-spacing:1px;">PHASE 02 // AUTONOMOUS SETTLEMENT</span> — Zero-key SPL micro-droplet broadcast to Solana L1';
         narrativePill.style.borderColor = "rgba(250, 204, 21, 0.35)";
       } else if (phase === 3) {
         narrativeDot.style.background = "var(--green)";
         narrativeDot.style.boxShadow = "0 0 8px var(--green)";
-        narrativeText.innerHTML = '<span style="color:var(--green);font-weight:700;">PHASE 03</span> · 200 OK Settled — Metamorphosis into Radiant Solana Crystal Shard across Jupiter, DFlow & OKX';
+        narrativeText.innerHTML = '<span style="color:var(--amber);font-weight:700;letter-spacing:1px;">PHASE 03 // HOROLOGICAL UNLOCK</span> — 200 OK Settled · Solana Chrono-Bullion hero lock across Jupiter & DFlow';
         narrativePill.style.borderColor = "rgba(0, 255, 163, 0.4)";
       }
     }
@@ -2155,6 +2203,7 @@
         triggerAnamorphicFlare();
         playSubBassConfirm();
         isSettled = true;
+            [satJupiter, satDflow, satOkx].forEach(s => { if (s && s.sprite && s.sprite.material) s.sprite.material.opacity = 0.85; });
         shockwaveTime = 0.0;
         settleRotationTime = 0.0;
         playSubBassConfirm();
@@ -2246,6 +2295,7 @@
             currentPhase = 3;
             playSubBassConfirm();
             isSettled = true;
+            [satJupiter, satDflow, satOkx].forEach(s => { if (s && s.sprite && s.sprite.material) s.sprite.material.opacity = 0.85; });
 
             step2.className = "step-item";
             step3.className = "step-item active";
@@ -2356,9 +2406,7 @@
         };
 
         mediaRecorder.start();
-        setTimeout(() => {
-          if (mediaRecorder.state !== "inactive") mediaRecorder.stop();
-        }, 16000);
+        setTimeout(() => { if (mediaRecorder.state !== "inactive") mediaRecorder.stop(); }, 72000);
       } catch (err) {
         console.error("Recording error:", err);
         btnRecord.innerText = "● Record 60 FPS Reel";
