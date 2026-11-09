@@ -1,94 +1,65 @@
-# Cinema-Grade Interactive 3D WebGL Showreel: Swap.io x402 Kinetic Airlock Vault
-> **Target Bounty:** Swap.io x402 Video Challenge ($500 USDC on Superteam Earn)  
-> **Author & Architect:** Apoorv A S (`@apoorv_xs` / `apoorv-xs`) — Creative Technologist & 3D WebUI Architect  
-> **Deliverable Asset:** `swap_io_x402_kinetic_vault_60fps.webm` (1080p @ 60 FPS, 5.47 MB with synchronized procedural Web Audio)  
-> **Interactive Live Preview:** `https://apoorv-xs.github.io/swap-x402/` (Full-bleed WebGL 3D Studio)
+# Swap.io x402 // 3D Kinetic Vault & Machine Finance Visualizer
+
+> **Architect**: Apoorv A S ([@apoorv_xs](https://x.com/apoorv_xs) / [GitHub](https://github.com/apoorv-xs))  
+> **Live Interactive WebUI**: [https://apoorv-xs.github.io/swap-x402/](https://apoorv-xs.github.io/swap-x402/)  
+> **Bounty Track**: Superteam Earn x Swap.io x402 Video Challenge  
 
 ---
 
-## 1. Executive Summary & Creative Vision
+## 1. Architectural Overview
 
-For the Swap.io x402 challenge, I engineered an uncompromising, production-grade 3D WebGL WebUI and showreel that visualizes the autonomous machine-to-machine financial handshake of the x402 protocol. Rather than producing a generic promotional video, I architected a live, interactive 60 FPS simulation running entirely in the browser that translates low-level cryptographic micro-settlements into physical horological mechanics.
+Autonomous AI agents cannot solve CAPTCHAs, enter 2FA codes, or carry traditional corporate credit cards. Storing long-lived static API keys in agent memory or configuration files creates a critical operational hazard.
 
-The scene stages the **Hermes x402 Kinetic Airlock Vault**: an ultra-luxury, high-security cleanroom chamber housing a multi-axis titanium and palladium gimbal rig. Over a 3-phase choreographic sequence, an autonomous agent queries an atomic swap quote, triggers an exact zero-key SPL micro-transfer, and unlocks the airlock—initiating an instantaneous metamorphosis of the central bullion from USDC into a CNC-machined Solana Chrono-Bullion, radiating liquidity across Jupiter, DFlow, and OKX decentralized routing rails.
+**Swap.io resolves this via the HTTP 402 ("Payment Required") protocol on Solana L1**:
+1. **Discovery & Challenge (`HTTP 402`)**: An unauthenticated agent requests aggregated swap liquidity (`POST https://hermes.swap.io/v1/swap/quote`). The Hermes gateway returns status code `402` containing an on-chain invoice with exact payment terms (USDC SPL mint, PayTo address, FeePayer sponsor, and micropayment amount).
+2. **Autonomous SPL Settlement**: The agent's local signer signs a micro-transfer ($0.003–$0.0044 USDC) directly on Solana. Gas is sponsored by the FeePayer, requiring zero native SOL reserves from the agent.
+3. **Vault Unlock & Aggregated Routing (`HTTP 200 OK`)**: The agent re-submits the quote request with the transaction receipt in the `X-PAYMENT` header. Upon on-chain confirmation, the Hermes router serves the best execution quote across Jupiter, DFlow, and OKX Dex.
+
+This repository provides an interactive, client-side 3D kinetic visualization of this protocol built in WebGL/Three.js with procedural Web Audio synthesis.
 
 ---
 
-## 2. Cryptographic & Protocol Narrative Architecture
+## 2. Technical Implementation
 
-My implementation adheres strictly to the official Swap.io Hermes x402 wire protocol (RFC 8259):
+- **Standalone 3D Monolith Engine**:
+  - Engineered in vanilla WebGL via Three.js with zero build-step dependencies.
+  - The custom 3D model is bundled in base64 within `swap_vault_data.js`, allowing 100% offline execution with zero CDN latency or CORS restrictions.
+- **Physical PBR Horological Finishing**:
+  - Restrained Swiss horological aesthetic (Solar Amber `#f59e0b` & brushed titanium, zero cyan/cyberpunk clutter).
+  - High-anisotropy procedural dials generated via canvas textures with 240 micro-lathe grooves and horological typography.
+  - Dual-axis trunnion gimbal assembly rotating along horizontal and orthogonal axes.
+- **Procedural Foley Web Audio**:
+  - Pure Web Audio API synthesis without external audio files (`.mp3`/`.wav`).
+  - Synthesizes bandpass-filtered tactile relay clicks and low-frequency resonant sub-bass drops (140 Hz → 35 Hz) on settlement confirmation.
+- **Strict Frame Budget**:
+  - Enforced 16.6ms frame budget (60 FPS floor) with clamped device pixel ratio (DPR ≤ 2.0).
 
-```mermaid
-sequenceDiagram
-    autonumber
-    participant Agent as Autonomous AI Agent
-    participant Hermes as Swap.io Hermes Router
-    participant Solana as Solana High-Speed L1
-    participant DEX as Liquidity Mesh (Jupiter / DFlow / OKX)
+---
 
-    Note over Agent, Hermes: Phase 1: Machine-to-Machine 402 Handshake
-    Agent->>Hermes: POST /v1/swap/quote (Pair: USDC/SOL, Amount: 10,000,000)
-    Hermes-->>Agent: HTTP 402 Payment Required (Payload: 4,405 atomic USDC, Gas-Free FeePayer)
+## 3. Protocol Verification & Testing
 
-    Note over Agent, Solana: Phase 2: Autonomous SPL Settlement
-    Agent->>Solana: Sign & Broadcast Exact SPL Transfer (4405 atomic USDC, Zero Static Keys)
-    Solana-->>Hermes: Verified On-Chain Finality (Tx: 5Kj9vX2MBqR7bZ4tW1yP3nL6sD8f...)
+To test the machine-to-machine x402 handshake directly against Swap.io's gateway:
 
-    Note over Hermes, DEX: Phase 3: Instant 200 OK Atomic Liquidity Metamorphosis
-    Hermes-->>Agent: HTTP 200 OK (Aperture Vault Unlocked, Header: X-PAYMENT)
-    Hermes->>DEX: Multi-Hop Liquidity Vector Dispersal (Jupiter 99.4%, DFlow 0.4%, OKX 0.2%)
+```bash
+# 1. Unauthenticated request triggers HTTP 402
+curl -i -X POST https://hermes.swap.io/v1/swap/quote \
+  -H "Content-Type: application/json" \
+  -d '{"inputMint":"EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v","outputMint":"So11111111111111111111111111111111111111112","amount":"10000000","slippageBps":50}'
+
+# 2. Run the included Python agent client
+python agent_swap_client.py
 ```
 
-1. **Phase 01 — HTTP 402 Payment Required**:
-   The AI agent dispatches an atomic swap request. Hermes intercepts the call and challenges the agent with an `HTTP 402 Payment Required` payload specifying recipient, fee-payer sponsored transaction parameters, and the exact atomic fee (\$0.004405 USDC). In the 3D viewport, the vault is locked under high-tension amber telemetry, with the bullion rimmed in cool palladium and deep sapphire.
-
-2. **Phase 02 — Autonomous SPL Settlement**:
-   The agent autonomously signs and broadcasts the exact SPL micro-droplet on Solana without human intervention or static API keys. The outer gimbal axes spin up to high angular velocity, decoupling the central aperture while an animated micro-fee particle droplet arcs seamlessly across the magnetic containment field.
-
-3. **Phase 03 — Instant 200 OK Settled & Atomic Liquidity Metamorphosis**:
-   Solana finalizes the transfer in sub-second latency. Hermes returns `HTTP 200 OK` with verified payment headers. The gimbal rings execute a rapid horological deceleration into a locked $+16^\circ$ hero showcase angle. The central bullion undergoes instantaneous structural transmutation into the forged **Solana Chrono-Bullion** with illuminated purple, cyan, and emerald brand monoliths, projecting coherent fiber-optic laser filaments to satellite relay nodes routing 99.4% to Jupiter, 0.4% to DFlow, and 0.2% to OKX.
-
 ---
 
-## 3. High-End 3D Visual & Engineering Highlights
+## 4. Production Links & Assets
 
-To eliminate all prototype aesthetics and achieve an Apple / Stripe Press grade standard, I implemented:
-
-- **Forged Solana Chrono-Bullion**:
-  - Machined titanium disc with 240 circular lathe grooves, 72 horological tick marks, and circular perimeter micro-typography.
-  - Recessed optical sapphire lens with high-transmission physical glass shaders.
-  - 3 precision CNC-machined, diamond-beveled Solana brand monoliths (Purple `#9945ff`, Blue `#38bdf8`, Emerald `#14f195`) floating with calibrated specular fresnel reflections on front and rear faces.
-  - Horological exponential deceleration with breathing idle float, guaranteeing the hero face is permanently presented to the camera.
-
-- **Cleanroom Clean Environment**:
-  - Deep obsidian cleanroom floor plane with grazing Fresnel reflections, circular contact shadow disc, and exponential horizon fog (`THREE.FogExp2`).
-  - Strict geometry traversal filtering to completely eliminate all Blender export artifacts (diagonal waveguides, floating trunnion axles, stray poles, and boxy slab corners).
-
-- **Sweeping Arc Relay Staging**:
-  - 3 hexagonal optical collector pedestals positioned in a sweeping arc across the open front-right quadrant (`Jupiter: [0.55, -0.80, 1.45]`, `DFlow: [0.95, -0.80, 1.25]`, `OKX: [1.30, -0.80, 0.95]`).
-  - Staggered floating HUD badges with real-time percentage allocations, completely unobstructed by pillars or telemetry sidebars.
-  - Coherent fiber-optic laser conduits with razor-thin cores, soft luminous halos, and high-velocity micro-photon pulse streaks.
-
-- **Glassmorphic Floating HUD**:
-  - 100vw / 100vh full-bleed edge-to-edge canvas with floating frosted glass cards (`rgba(6, 10, 18, 0.60)`, `backdrop-filter: blur(24px)`, rounded corners, hairline neon borders).
-  - Live wire protocol log stream, real-time cryptographic settlement telemetry, and interactive timeline stepper controls.
-
-- **Real-Time Procedural Web Audio Engine**:
-  - Synthesized dual-oscillator sub-bass drone, high-frequency kinetic servos, resonant laser arpeggios, and crystalline settlement chimes.
-  - Master audio routing with zero external audio assets required.
-
----
-
-## 4. Verification & Production Artifacts
-
-| Artifact | Path / URL | Status |
+| Asset | Link / Status | Description |
 |---|---|---|
-| **60 FPS Master Video** | `B:\bounties\swap_x402\swap_io_x402_kinetic_vault_60fps.webm` | **Verified (5.47 MB, 1080p @ 60 FPS)** |
-| **Interactive Studio WebUI** | `B:\bounties\swap_x402\index.html` (`https://apoorv-xs.github.io/swap-x402/`) | **Live & Operational** |
-| **Phase 1 Master Render** | `final_phase1_apple.png` | **Verified Apple-Tier** |
-| **Phase 2 Master Render** | `final_phase2_apple.png` | **Clean, Zero Artifacts** |
-| **Phase 3 Hero Showcase** | `final_phase3_apple.png` | **Forged Solana Chrono-Bullion** |
+| **Live Interactive WebUI** | [apoorv-xs.github.io/swap-x402](https://apoorv-xs.github.io/swap-x402/) | Production deployment hosted on GitHub Pages |
+| **Protocol Documentation** | [swap.io](https://swap.io) | Official Swap.io x402 protocol specification |
+| **Source Code** | [github.com/apoorv-xs/swap-x402](https://github.com/apoorv-xs/swap-x402) | Complete client and agent handshake implementation |
 
 ---
 
-*Authored individually by Apoorv A S — Creative Technologist & 3D WebUI Architect.*
+*Authored by Apoorv A S — Creative Technologist & 3D WebUI Architect.*
