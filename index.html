@@ -64,8 +64,26 @@
 
     
     /* === EDITORIAL RESTRAINT: HIDE CYBERPUNK CLUTTER === */
-    .left-strip, .right-strip, .reticle-cross, #anamorphic-flare {
+    .right-strip, .reticle-cross, #anamorphic-flare {
       display: none !important;
+    }
+
+    /* Elegant Frosted HUD Spatial Terminal Strip */
+    .left-strip {
+      display: flex !important;
+      position: absolute !important;
+      top: 68px !important;
+      left: 24px !important;
+      width: 320px !important;
+      max-height: calc(100vh - 140px) !important;
+      background: rgba(6, 9, 15, 0.72) !important;
+      backdrop-filter: blur(24px) !important;
+      -webkit-backdrop-filter: blur(24px) !important;
+      border: 1px solid rgba(245, 158, 11, 0.22) !important;
+      border-radius: 12px !important;
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.6) !important;
+      z-index: 20 !important;
+      pointer-events: auto !important;
     }
 
     .avionics-cockpit {
