@@ -1800,25 +1800,84 @@
       splashMesh.position.z = 0.15;
       g.add(splashMesh);
 
-      // 3D Staggered Floating Telemetry Label Sprite (Zero UI overlap)
+            // 3D Staggered High-Contrast Retina Telemetry Label Sprite (Crystal-clear human legibility)
       const labelCanvas = document.createElement("canvas");
-      labelCanvas.width = 256; labelCanvas.height = 64;
+      labelCanvas.width = 1024;
+      labelCanvas.height = 256;
       const lCtx = labelCanvas.getContext("2d");
-      lCtx.fillStyle = "rgba(10, 12, 18, 0.88)";
-      if (lCtx.roundRect) { lCtx.roundRect(8, 8, 240, 48, 6); lCtx.fill(); } else { lCtx.fillRect(8, 8, 240, 48); }
-      lCtx.strokeStyle = "rgba(245, 158, 11, 0.45)";
-      lCtx.lineWidth = 1.0;
+
+      // Deep High-Contrast Obsidian Glass Pill
+      lCtx.fillStyle = "rgba(5, 7, 14, 0.96)";
+      if (lCtx.roundRect) {
+        lCtx.roundRect(16, 16, 992, 224, 28);
+        lCtx.fill();
+      } else {
+        lCtx.fillRect(16, 16, 992, 224);
+      }
+
+      // Glowing Solar Amber Chamfered Border
+      lCtx.strokeStyle = "rgba(245, 158, 11, 0.90)";
+      lCtx.lineWidth = 5.0;
       lCtx.stroke();
-      lCtx.fillStyle = "#f8fafc";
-      lCtx.font = "600 17px 'JetBrains Mono', monospace";
-      lCtx.textAlign = "center";
-      lCtx.fillText(labelText, 128, 38);
+
+      // Inner Ambient Light Accent
+      lCtx.strokeStyle = "rgba(251, 191, 36, 0.35)";
+      lCtx.lineWidth = 2.0;
+      if (lCtx.roundRect) {
+        lCtx.roundRect(24, 24, 976, 208, 22);
+        lCtx.stroke();
+      }
+
+      // Glowing Status Beacon Dot
+      lCtx.fillStyle = "#f59e0b";
+      lCtx.beginPath();
+      lCtx.arc(74, 128, 16, 0, Math.PI * 2);
+      lCtx.fill();
+      lCtx.shadowColor = "#f59e0b";
+      lCtx.shadowBlur = 18;
+
+      // High-Contrast Bold Route & Allocation Typography
+      const parts = labelText.split("//");
+      const routeName = parts[0] ? parts[0].trim() : labelText;
+      const allocPct  = parts[1] ? parts[1].trim() : "";
+
+      lCtx.shadowBlur = 0;
+      lCtx.textAlign = "left";
+      lCtx.textBaseline = "middle";
+
+      // Left: Route Protocol Name
+      lCtx.font = "800 68px 'JetBrains Mono', 'Segoe UI', monospace";
+      lCtx.fillStyle = "#fbbf24";
+      lCtx.fillText(routeName, 115, 128);
+
+      // Separator
+      const nameWidth = lCtx.measureText(routeName).width;
+      lCtx.font = "400 52px 'JetBrains Mono', monospace";
+      lCtx.fillStyle = "rgba(245, 158, 11, 0.65)";
+      lCtx.fillText("//", 125 + nameWidth, 128);
+
+      // Right: High-Contrast Percentage
+      const sepWidth = lCtx.measureText("//").width;
+      lCtx.font = "800 68px 'JetBrains Mono', 'Segoe UI', monospace";
+      lCtx.fillStyle = "#ffffff";
+      lCtx.fillText(allocPct, 140 + nameWidth + sepWidth, 128);
 
       const labelTex = new THREE.CanvasTexture(labelCanvas);
-      const spriteMat = new THREE.SpriteMaterial({ map: labelTex, transparent: true, opacity: 0.0 });
+      labelTex.generateMipmaps = true;
+      labelTex.minFilter = THREE.LinearMipmapLinearFilter;
+      labelTex.magFilter = THREE.LinearFilter;
+
+      const spriteMat = new THREE.SpriteMaterial({
+        map: labelTex,
+        transparent: true,
+        opacity: 0.0,
+        depthTest: false,
+        depthWrite: false
+      });
       const sprite = new THREE.Sprite(spriteMat);
-      sprite.scale.set(0.32, 0.08, 1.0);
+      sprite.scale.set(0.72, 0.18, 1.0);
       sprite.position.set(0, yOffset, 0);
+      sprite.renderOrder = 999;
       g.add(sprite);
 
       const beacon = new THREE.PointLight(nameColor, 0, 4);
@@ -1828,14 +1887,14 @@
       return { group: g, chip, edgeRing, prism, splashMesh, splashMat, sprite, light: beacon, baseOffset: yOffset };
     }
 
-    // Staggered Relay Pedestal Coordinates (Open front-right sweeping arc, 100% visible, zero UI occlusion)
-    const satJupiterPos = new THREE.Vector3(0.60, -0.72, 1.10);
-    const satDflowPos   = new THREE.Vector3(0.95, -0.72, 0.88);
-    const satOkxPos     = new THREE.Vector3(1.28, -0.72, 0.65);
+    // Staggered Relay Pedestal Coordinates (Open front-right sweeping arc, generous horizontal & vertical spacing)
+    const satJupiterPos = new THREE.Vector3(0.55, -0.72, 1.15);
+    const satDflowPos   = new THREE.Vector3(0.98, -0.72, 0.85);
+    const satOkxPos     = new THREE.Vector3(1.38, -0.72, 0.55);
 
-    const satJupiter = createSatelliteNode(satJupiterPos, 0xf59e0b, "JUPITER // 99.4%", 0.32);
-    const satDflow   = createSatelliteNode(satDflowPos,   0xfbbf24, "DFLOW // 0.4%",    0.38);
-    const satOkx     = createSatelliteNode(satOkxPos,     0xd97706, "OKX // 0.2%",      0.32);
+    const satJupiter = createSatelliteNode(satJupiterPos, 0xf59e0b, "JUPITER // 99.4%", 0.38);
+    const satDflow   = createSatelliteNode(satDflowPos,   0xfbbf24, "DFLOW // 0.4%",    0.54);
+    const satOkx     = createSatelliteNode(satOkxPos,     0xd97706, "OKX // 0.2%",      0.38);
 
     scene.add(satJupiter.group);
     scene.add(satDflow.group);
@@ -2160,7 +2219,7 @@
           sat.prism.rotation.y += 0.025;
           sat.prism.rotation.z += 0.015;
           if (sat.splashMesh) sat.splashMesh.rotation.z += 0.04;
-          if (sat.sprite) sat.sprite.position.y = 0.26 + Math.sin(t * 2.2 + sIdx) * 0.02;
+          if (sat.sprite) sat.sprite.position.y = (sat.baseOffset || 0.38) + Math.sin(t * 2.2 + sIdx * 1.5) * 0.02;
         });
       }
 
@@ -2485,6 +2544,7 @@
     step2.addEventListener("click", () => jumpToPhase(2));
     step3.addEventListener("click", () => jumpToPhase(3));
 
+    window.forcePhase3 = function() { currentPhase = 3; isSettled = true; [satJupiter, satDflow, satOkx].forEach(s => { if (s && s.sprite && s.sprite.material) s.sprite.material.opacity = 0.95; }); if (glbBullion) glbBullion.visible = false; if (glbSolana) { glbSolana.visible = true; glbSolana.scale.set(0.72, 0.72, 0.72); } };
     function runSequence() {
       activeTimers.forEach(clearTimeout);
       activeTimers = [];
