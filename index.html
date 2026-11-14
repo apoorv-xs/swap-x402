@@ -74,7 +74,7 @@
       position: absolute !important;
       top: 68px !important;
       left: 24px !important;
-      width: 320px !important;
+      width: 380px !important;
       max-height: calc(100vh - 140px) !important;
       background: rgba(6, 9, 15, 0.72) !important;
       backdrop-filter: blur(24px) !important;
@@ -658,6 +658,7 @@
       canvas,
       antialias: true,
       alpha: true,
+      preserveDrawingBuffer: true,
       powerPreference: "high-performance"
     });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -2035,6 +2036,85 @@
       camera.updateProjectionMatrix();
     }, { passive: true });
 
+
+    // ==========================================
+    // IN-CANVAS HUD OVERLAY FOR TRUE 60 FPS WEBGL STREAM
+    // ==========================================
+    const hudCanvas = document.createElement("canvas");
+    hudCanvas.width = 760;
+    hudCanvas.height = 1040;
+    const hudCtx = hudCanvas.getContext("2d");
+    const hudTexture = new THREE.CanvasTexture(hudCanvas);
+    hudTexture.minFilter = THREE.LinearFilter;
+
+    const hudScene = new THREE.Scene();
+    const hudCamera = new THREE.OrthographicCamera(-window.innerWidth / 2, window.innerWidth / 2, window.innerHeight / 2, -window.innerHeight / 2, 0, 30);
+    const hudPlane = new THREE.Mesh(
+      new THREE.PlaneGeometry(380, 520),
+      new THREE.MeshBasicMaterial({ map: hudTexture, transparent: true })
+    );
+    hudPlane.position.set(-window.innerWidth / 2 + 214, window.innerHeight / 2 - 328, 5);
+    hudScene.add(hudPlane);
+
+    let hudLogLines = [];
+    let hudStatusText = "HTTP 402 · PAYMENT REQUIRED";
+    let hudStatusColor = "#f87171";
+
+    function updateHudTexture(logText, statusText, statusColor) {
+      if (logText) hudLogLines.push(logText);
+      if (hudLogLines.length > 10) hudLogLines.shift();
+      if (statusText) hudStatusText = statusText;
+      if (statusColor) hudStatusColor = statusColor;
+
+      hudCtx.clearRect(0, 0, 760, 1040);
+      hudCtx.fillStyle = "rgba(6, 9, 15, 0.78)";
+      if (hudCtx.roundRect) {
+        hudCtx.beginPath();
+        hudCtx.roundRect(0, 0, 760, 1040, 24);
+        hudCtx.fill();
+        hudCtx.lineWidth = 2;
+        hudCtx.strokeStyle = "rgba(245, 158, 11, 0.35)";
+        hudCtx.stroke();
+      } else {
+        hudCtx.fillRect(0, 0, 760, 1040);
+      }
+
+      hudCtx.fillStyle = "#f59e0b";
+      hudCtx.font = "bold 26px monospace";
+      hudCtx.fillText("HERMES x402 · APERTURE ROUTER", 32, 60);
+
+      hudCtx.fillStyle = hudStatusColor;
+      hudCtx.font = "bold 22px monospace";
+      hudCtx.fillText("● " + hudStatusText, 32, 110);
+
+      hudCtx.strokeStyle = "rgba(255, 255, 255, 0.1)";
+      hudCtx.beginPath();
+      hudCtx.moveTo(32, 135);
+      hudCtx.lineTo(728, 135);
+      hudCtx.stroke();
+
+      hudCtx.font = "20px 'JetBrains Mono', monospace";
+      let y = 175;
+      hudLogLines.forEach(l => {
+        if (l.includes("402") || l.includes("SETTLEMENT") || l.includes("UNLOCKED")) {
+          hudCtx.fillStyle = "#fbbf24";
+        } else if (l.includes("✓")) {
+          hudCtx.fillStyle = "#34d399";
+        } else {
+          hudCtx.fillStyle = "#94a3b8";
+        }
+        hudCtx.fillText(l.replace(/<[^>]*>/g, "").substring(0, 48), 32, y);
+        y += 42;
+      });
+
+      hudCtx.fillStyle = "rgba(245, 158, 11, 0.85)";
+      hudCtx.font = "18px monospace";
+      hudCtx.fillText("JUPITER: 99.4%   DFLOW: 0.4%   OKX: 0.2%", 32, 990);
+
+      hudTexture.needsUpdate = true;
+    }
+    updateHudTexture("❯ agent --role compute --rail hermes", "HTTP 402 · PAYMENT REQUIRED", "#f87171");
+
     function animate() {
       requestAnimationFrame(animate);
       const t = clock.getElapsedTime();
@@ -2053,15 +2133,43 @@
       dragRotationX = Math.max(-0.40, Math.min(0.65, dragRotationX));
 
       // ------------------------------------------
-      // CINEMATIC ORBIT CAMERA (Ground stays rock solid!)
+      // CINEMATIC DYNAMIC ORBIT CAMERA (Time-driven director choreography)
       // ------------------------------------------
-      const orbitDist = 5.2;
-      const orbitAngleY = 0.18 + dragRotationY + mouseX * 0.20;
-      const orbitElev = 0.45 + dragRotationX - mouseY * 0.25;
-      camera.position.x = Math.sin(orbitAngleY) * orbitDist - 0.20;
-      camera.position.z = Math.cos(orbitAngleY) * orbitDist;
+      let autoAngleY = 0.18;
+      let targetDist = 5.2;
+      let targetElev = 0.45;
+      let targetLookY = -0.15;
+
+      if (!isDragging && Math.abs(dragRotationY) < 0.01 && Math.abs(mouseX) < 0.01) {
+        if (t < 20) {
+          // Phase 1 (0-20s): Dynamic orbital sweep around locked chamber
+          autoAngleY = 0.18 + t * 0.14;
+          targetDist = 5.2 - Math.sin(t * 0.15) * 0.25;
+          targetElev = 0.45 + Math.sin(t * 0.3) * 0.12;
+          targetLookY = -0.10;
+        } else if (t < 40) {
+          // Phase 2 (20-40s): Dynamic punch-in on spinning bullion & particle arc
+          const tRel = t - 20;
+          autoAngleY = 2.98 + tRel * 0.18;
+          targetDist = 3.9 - Math.min(0.4, tRel * 0.04);
+          targetElev = 0.55 + Math.sin(tRel * 0.25) * 0.08;
+          targetLookY = -0.05;
+        } else {
+          // Phase 3 (40-65s): Dramatic wide hero reveal & decompression rise
+          const tRel = t - 40;
+          autoAngleY = 6.58 + tRel * 0.12;
+          targetDist = 4.7 + Math.sin(tRel * 0.15) * 0.2;
+          targetElev = 0.35 + Math.min(0.28, tRel * 0.02);
+          targetLookY = 0.08;
+        }
+      }
+
+      const orbitAngleY = autoAngleY + dragRotationY + mouseX * 0.20;
+      const orbitElev = targetElev + dragRotationX - mouseY * 0.25;
+      camera.position.x = Math.sin(orbitAngleY) * targetDist - 0.20;
+      camera.position.z = Math.cos(orbitAngleY) * targetDist;
       camera.position.y = Math.max(-0.10, Math.min(2.2, orbitElev));
-      camera.lookAt(0.0, -0.15, 0.0);
+      camera.lookAt(0.0, targetLookY, 0.0);
 
       // Kinetic Metamorphic Interpolation (0.0 = USDC Coin Hero, 1.0 = Solana Crystal Shard Hero)
       const targetProg = (currentPhase === 3) ? 1.0 : (currentPhase === 2 ? 0.35 : 0.0);
@@ -2105,11 +2213,11 @@
             glbBullion.position.set(0, 0, 0);
             glbBullion.scale.set(1.0, 1.0, 1.0);
             if (currentPhase === 1) {
-              // Idle breathing angle
-              glbBullion.rotation.y = -0.20 + Math.sin(t * 0.8) * 0.08;
+              // Idle breathing angle with visible orbital precession
+              glbBullion.rotation.y = -0.20 + Math.sin(t * 1.5) * 0.25;
             } else if (currentPhase === 2) {
               // Active settlement cryptographic processing spin
-              glbBullion.rotation.y = t * 1.5;
+              glbBullion.rotation.y = t * 2.8;
             }
           }
         }
@@ -2277,6 +2385,11 @@
         } else {
           renderer.render(scene, camera);
         }
+      if (hudScene && hudCamera) {
+        renderer.autoClear = false;
+        renderer.render(hudScene, hudCamera);
+        renderer.autoClear = true;
+      }
     }
     animate();
 
@@ -2357,19 +2470,19 @@
     const narrativeText = document.getElementById("narrative-text");
 
     const steps = [
-      { delay: 800, html: '<span style="color:var(--amber)">❯ agent --role compute --rail hermes</span>' },
-      { delay: 2500, html: '<span style="color:var(--muted)">[INIT] Connecting to Hermes router: zero static credentials</span>' },
-      { delay: 5000, html: '<span style="color:var(--amber)">POST https://hermes.swap.io/v1/swap/quote</span>' },
-      { delay: 8000, html: '<span style="color:var(--muted)">Pair: USDC/SOL | Amount: 10,000,000 atomic | Slippage: 50bps</span>' },
-      { delay: 12000, html: '<span style="color:var(--amber)">HTTP 402 Payment Required</span>', phase1: true },
-      { delay: 18000, html: '<span style="color:var(--muted)">├── Asset    : EPjFWdd5Aufq... (USDC)\n├── PayTo    : BPz2u6eoWLervx... (Hermes)\n├── FeePayer : 2wKupLR9q6w... (Gas Free)\n└── Amount   : 4405 atomic ($0.004405 USDC)</span>' },
-      { delay: 24000, html: '<span style="color:var(--amber-glow)">⚡ AUTONOMOUS SPL SETTLEMENT TRIGGERED</span>', step2Active: true, phase2: true },
-      { delay: 29000, html: '<span style="color:var(--muted)">Signing exact transfer ($0.004405 USDC) on Solana L1...</span>' },
-      { delay: 35000, html: '<span style="color:var(--amber)">✓ Tx Broadcast: 5Kj9vX2M8qR7bZ4tW1yP3nL6sD8f...</span>' },
-      { delay: 42000, html: '<span style="color:var(--amber)">POST https://hermes.swap.io/v1/swap/quote [Header: X-PAYMENT]</span>' },
-      { delay: 48000, html: '<span style="color:var(--amber-glow)">✓ HTTP 200 OK — APERTURE VAULT UNLOCKED</span>', unlock: true, phase3: true },
-      { delay: 54000, html: '<span style="color:var(--amber)">◈ Liquidity Vectors Radiating: Jupiter 99.4% · DFlow 0.4% · OKX 0.2%</span>' },
-      { delay: 62000, html: '<span style="color:var(--muted)">[FINALITY] Machine-to-machine financial handshake settled in 60 FPS</span>' }
+      { delay: 500,  html: '<span style="color:var(--amber)">❯ agent --role compute --rail hermes</span>' },
+      { delay: 2200, html: '<span style="color:var(--muted)">[INIT] Connecting to Hermes router: zero static credentials</span>' },
+      { delay: 4800, html: '<span style="color:var(--amber)">POST https://hermes.swap.io/v1/swap/quote</span>' },
+      { delay: 7500, html: '<span style="color:var(--muted)">Pair: USDC/SOL | Amount: 10,000,000 atomic | Slippage: 50bps</span>' },
+      { delay: 11000, html: '<span style="color:var(--amber)">HTTP 402 Payment Required</span>', phase1: true },
+      { delay: 15500, html: '<span style="color:var(--muted)">├── Asset    : EPjFWdd5Aufq... (USDC)\n├── PayTo    : BPz2u6eoWLervx... (Hermes)\n├── FeePayer : 2wKupLR9q6w... (Gas Free)\n└── Amount   : 4405 atomic ($0.004405 USDC)</span>' },
+      { delay: 20000, html: '<span style="color:var(--amber-glow)">⚡ AUTONOMOUS SPL SETTLEMENT TRIGGERED</span>', step2Active: true, phase2: true },
+      { delay: 24500, html: '<span style="color:var(--muted)">Signing exact transfer ($0.004405 USDC) on Solana L1...</span>' },
+      { delay: 29500, html: '<span style="color:var(--amber)">✓ Tx Broadcast: 5Kj9vX2M8qR7bZ4tW1yP3nL6sD8f...</span>' },
+      { delay: 35000, html: '<span style="color:var(--amber)">POST https://hermes.swap.io/v1/swap/quote [Header: X-PAYMENT]</span>' },
+      { delay: 40000, html: '<span style="color:var(--amber-glow)">✓ HTTP 200 OK — APERTURE VAULT UNLOCKED</span>', unlock: true, phase3: true },
+      { delay: 46000, html: '<span style="color:var(--amber)">◈ Liquidity Vectors Radiating: Jupiter 99.4% · DFlow 0.4% · OKX 0.2%</span>' },
+      { delay: 54000, html: '<span style="color:var(--muted)">[FINALITY] Machine-to-machine financial handshake settled in 60 FPS</span>' }
     ];
 
     let activeTimers = [];
@@ -2501,6 +2614,11 @@
         });
       }
       termStream.scrollTop = termStream.scrollHeight;
+          if (typeof updateHudTexture === 'function') {
+            const st = s.step2Active ? "SETTLING SOLANA L1" : (s.unlock ? "200 OK · ROUTE UNLOCKED" : (s.phase1 ? "HTTP 402 · PAYMENT REQUIRED" : null));
+            const sc = s.step2Active ? "#fbbf24" : (s.unlock ? "#34d399" : (s.phase1 ? "#f87171" : null));
+            updateHudTexture(s.html, st, sc);
+          }
     }
 
     step1.addEventListener("click", () => jumpToPhase(1));
@@ -2542,6 +2660,11 @@
           div.innerHTML = s.html;
           termStream.appendChild(div);
           termStream.scrollTop = termStream.scrollHeight;
+          if (typeof updateHudTexture === 'function') {
+            const st = s.step2Active ? "SETTLING SOLANA L1" : (s.unlock ? "200 OK · ROUTE UNLOCKED" : (s.phase1 ? "HTTP 402 · PAYMENT REQUIRED" : null));
+            const sc = s.step2Active ? "#fbbf24" : (s.unlock ? "#34d399" : (s.phase1 ? "#f87171" : null));
+            updateHudTexture(s.html, st, sc);
+          }
 
           if (s.phase1) updateNarrative(1);
           if (s.phase2) updateNarrative(2);
